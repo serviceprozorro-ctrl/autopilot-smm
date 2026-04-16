@@ -64,18 +64,43 @@ async def add_account(
     db: AsyncSession = Depends(get_db),
 ) -> AccountResponse:
     try:
-        account = await AccountManager.add_account(
-            db=db,
-            platform=payload.platform,
-            username=payload.username,
-            auth_type=payload.auth_type,
-            raw_session_data=payload.session_data,
-        )
+        auth = payload.auth_type
+        plat = payload.platform
+        user = payload.username.strip().lstrip("@")
+        sess = payload.session_data
+
+        if auth == AuthType.COOKIES:
+            account = await AccountManager.add_account_cookies(
+                db=db, platform=plat, username=user, raw_cookies=sess,
+            )
+        elif auth == AuthType.LOGIN_PASSWORD:
+            if not sess:
+                raise ValueError("Пароль обязателен для метода 'Логин + Пароль'")
+            account = await AccountManager.add_account_login_password(
+                db=db, platform=plat, username=user, password=sess,
+            )
+        elif auth == AuthType.QR_CODE:
+            # Create a pending record — real QR flow happens in the Telegram bot
+            account = await AccountManager.add_account_qr_pending(
+                db=db, platform=plat, username=user, qr_token="pending_via_api",
+            )
+        elif auth == AuthType.API:
+            if not sess:
+                raise ValueError("API ключ обязателен для метода 'API'")
+            account = await AccountManager.add_account_api(
+                db=db, platform=plat, username=user, api_key=sess,
+            )
+        else:
+            raise ValueError(f"Неизвестный тип авторизации: {auth}")
+
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc))
     except Exception as exc:
         logger.exception("Failed to create account: %s", exc)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal error")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Внутренняя ошибка сервера",
+        )
 
     return AccountResponse(
         id=account.id,
