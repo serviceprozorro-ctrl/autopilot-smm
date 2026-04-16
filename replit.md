@@ -87,4 +87,30 @@ Command: `cd social_media_bot && python3.11 -m uvicorn main:app --host 0.0.0.0 -
 - Cookie/session data encrypted with Fernet before storage
 - All UI uses inline keyboard buttons (no commands needed after /start)
 
+## AutoPilot Dashboard (Streamlit)
+
+Location: `dashboard/`
+
+### Running
+
+Workflow: **AutoPilot Dashboard**
+Command: `cd dashboard && python3.11 -m streamlit run app.py --server.port 5000`
+
+### Pages
+
+| Страница | Инструмент | Описание |
+|----------|-----------|----------|
+| `app.py` | 🏠 Дашборд | Статистика аккаунтов, метрики системы, навигация |
+| `pages/1_📱_Accounts.py` | 📱 Аккаунты | Управление аккаунтами (через Bot API) |
+| `pages/2_🖼_Background_Remover.py` | 🖼 Фон | Удаление фона (AI rembg или по цвету) |
+| `pages/3_🧾_QR_Generator.py` | 🧾 QR | QR-коды: URL, WiFi, vCard, текст |
+| `pages/4_💻_Fake_Data.py` | 💻 Faker | Тестовые данные (JSON/CSV/SQL) |
+| `pages/5_📥_YouTube_Downloader.py` | 📥 YT-DL | Скачивание видео/аудио через yt-dlp |
+| `pages/6_📊_Resource_Monitor.py` | 📊 Монитор | CPU, RAM, диск, сеть, процессы |
+| `pages/7_🔍_Code_Analyzer.py` | 🔍 Анализ | Pylint + Pyflakes |
+| `pages/8_🔗_Link_Checker.py` | 🔗 Ссылки | Параллельная проверка URL |
+| `pages/9_📷_Image_Editor.py` | 📷 Фото | Яркость, контраст, эффекты, водяной знак |
+| `pages/10_📝_Article_Summarizer.py` | 📝 Суммаризатор | TF-IDF суммаризация без AI |
+| `pages/11_🗞_News_Reader.py` | 🗞 Новости | RSS-ленты: RBC, Habr, BBC, HN, TechCrunch |
+
 See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.
