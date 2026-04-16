@@ -50,7 +50,8 @@ st.divider()
 
 # ── Account stats from bot API ────────────────────────────────────────────────
 stats = get_stats() if bot_status else None
-accounts = get_accounts() if bot_status else []
+_raw_accounts = get_accounts() if bot_status else []
+accounts = _raw_accounts if isinstance(_raw_accounts, list) else []
 
 col1, col2, col3, col4, col5 = st.columns(5)
 
@@ -126,6 +127,8 @@ if accounts:
 
     rows = []
     for acc in accounts[:10]:
+        if not isinstance(acc, dict):
+            continue
         rows.append({
             "Платформа": platform_icons.get(acc.get("platform",""), "📱") + " " + acc.get("platform","").capitalize(),
             "Username": "@" + acc.get("username", ""),
