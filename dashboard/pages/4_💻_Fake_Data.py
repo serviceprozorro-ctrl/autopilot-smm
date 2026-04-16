@@ -7,8 +7,8 @@ import csv
 import io
 from faker import Faker
 
-st.set_page_config(page_title="Fake Data Generator", page_icon="💻", layout="wide")
-st.title("💻 Fake Data Generator")
+st.set_page_config(page_title="Генератор тестовых данных", page_icon="💻", layout="wide")
+st.title("💻 Генератор тестовых данных")
 st.markdown("Генератор реалистичных тестовых данных")
 
 LOCALES = {
@@ -24,12 +24,31 @@ with col_settings:
 
     count = st.slider("Количество записей", 1, 500, 20)
 
+    _FIELD_LABELS = {
+        "name": "Имя",
+        "email": "Email",
+        "phone_number": "Телефон",
+        "address": "Адрес",
+        "company": "Компания",
+        "job": "Должность",
+        "username": "Username",
+        "password": "Пароль",
+        "date_of_birth": "Дата рождения",
+        "ssn": "SSN",
+        "credit_card_number": "Номер карты",
+        "iban": "IBAN",
+        "user_agent": "User-Agent",
+        "ipv4": "IP-адрес",
+        "url": "URL",
+        "text": "Текст",
+        "color_name": "Цвет",
+        "country": "Страна",
+    }
     fields = st.multiselect(
         "Поля для генерации",
-        ["name", "email", "phone_number", "address", "company", "job", "username",
-         "password", "date_of_birth", "ssn", "credit_card_number", "iban",
-         "user_agent", "ipv4", "url", "text", "color_name", "country"],
+        list(_FIELD_LABELS.keys()),
         default=["name", "email", "phone_number", "username", "company"],
+        format_func=lambda x: _FIELD_LABELS.get(x, x),
     )
 
     output_format = st.radio("Формат вывода", ["Таблица", "JSON", "CSV", "SQL INSERT"])

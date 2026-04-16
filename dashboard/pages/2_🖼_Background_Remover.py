@@ -5,8 +5,8 @@ import streamlit as st
 from PIL import Image, ImageFilter
 import io
 
-st.set_page_config(page_title="Background Remover", page_icon="🖼", layout="wide")
-st.title("🖼 Background Remover")
+st.set_page_config(page_title="Удаление фона", page_icon="🖼", layout="wide")
+st.title("🖼 Удаление фона")
 st.markdown("Удалите фон с изображения. Поддерживается PNG, JPG, WEBP.")
 
 col_upload, col_result = st.columns(2)

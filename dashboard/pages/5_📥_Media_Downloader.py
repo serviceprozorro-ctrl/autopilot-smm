@@ -256,7 +256,8 @@ with tab_single:
     with col_afmt:
         audio_fmt = st.selectbox("Формат аудио", ["MP3", "M4A", "FLAC", "OGG", "WAV", "OPUS"], key="afmt_s")
     with col_qual:
-        quality = st.selectbox("Качество", ["best", "2160p", "1440p", "1080p", "720p", "480p", "360p", "worst"], key="qual_s")
+        quality = st.selectbox("Качество", ["best", "2160p", "1440p", "1080p", "720p", "480p", "360p", "worst"],
+                               format_func=lambda x: {"best": "Наилучшее", "worst": "Наименьшее"}.get(x, x), key="qual_s")
 
     col_o1, col_o2, col_o3 = st.columns(3)
     with col_o1:
@@ -345,7 +346,8 @@ with tab_batch:
     with col_baf:
         b_afmt = st.selectbox("Формат аудио", ["MP3", "M4A", "FLAC", "OGG", "WAV"], key="afmt_b")
     with col_bq:
-        b_qual = st.selectbox("Качество", ["best", "1080p", "720p", "480p", "360p", "worst"], key="qual_b")
+        b_qual = st.selectbox("Качество", ["best", "1080p", "720p", "480p", "360p", "worst"],
+                              format_func=lambda x: {"best": "Наилучшее", "worst": "Наименьшее"}.get(x, x), key="qual_b")
 
     col_bo1, col_bo2 = st.columns(2)
     b_thumb = col_bo1.checkbox("🖼 Встроить обложку", key="thumb_b", value=True)
@@ -393,7 +395,8 @@ with tab_playlist:
     with col_pl2:
         pl_vfmt = st.selectbox("Формат", ["MP4", "MKV"] if "Видео" in "🎬 Видео" else ["MP3","M4A"], key="vfmt_pl")
     with col_pl3:
-        pl_qual = st.selectbox("Качество", ["720p", "1080p", "480p", "360p", "best"], key="qual_pl")
+        pl_qual = st.selectbox("Качество", ["720p", "1080p", "480p", "360p", "best"],
+                               format_func=lambda x: {"best": "Наилучшее"}.get(x, x), key="qual_pl")
 
     col_r1, col_r2 = st.columns(2)
     pl_start = col_r1.number_input("Начать с видео №", min_value=1, value=1, step=1, key="pl_start")

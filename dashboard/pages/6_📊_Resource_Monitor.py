@@ -7,8 +7,8 @@ import plotly.graph_objects as go
 import time
 from datetime import datetime
 
-st.set_page_config(page_title="Resource Monitor", page_icon="📊", layout="wide", initial_sidebar_state="collapsed")
-st.title("📊 Resource Monitor")
+st.set_page_config(page_title="Мониторинг ресурсов", page_icon="📊", layout="wide", initial_sidebar_state="collapsed")
+st.title("📊 Мониторинг ресурсов")
 
 auto_refresh = st.checkbox("🔄 Автообновление каждые 3 секунды")
 if auto_refresh:
@@ -28,7 +28,7 @@ cpu_freq = psutil.cpu_freq()
 cpu_count = psutil.cpu_count()
 
 col1, col2, col3, col4 = st.columns(4)
-col1.metric("🖥 CPU Load", f"{cpu_percent:.1f}%")
+col1.metric("🖥 Нагрузка CPU", f"{cpu_percent:.1f}%")
 col2.metric("⚡ Частота", f"{cpu_freq.current:.0f} MHz" if cpu_freq else "N/A")
 col3.metric("🔢 Ядра (логич.)", cpu_count)
 col4.metric("🔢 Ядра (физич.)", psutil.cpu_count(logical=False))
@@ -39,7 +39,7 @@ cols = st.columns(min(len(per_core), 8))
 for i, (pct, col) in enumerate(zip(per_core[:8], cols)):
     with col:
         color = "🔴" if pct > 80 else "🟡" if pct > 50 else "🟢"
-        st.metric(f"{color} Core {i}", f"{pct:.0f}%")
+        st.metric(f"{color} Ядро {i}", f"{pct:.0f}%")
 
 st.divider()
 

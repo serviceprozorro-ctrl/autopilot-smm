@@ -6,8 +6,8 @@ import re
 from collections import Counter
 import math
 
-st.set_page_config(page_title="Article Summarizer", page_icon="📝", layout="wide")
-st.title("📝 Article Summarizer")
+st.set_page_config(page_title="Суммаризатор статей", page_icon="📝", layout="wide")
+st.title("📝 Суммаризатор статей")
 st.markdown("Краткое изложение статей и текстов. Работает без AI — полностью локально.")
 
 EXAMPLE = """Искусственный интеллект (ИИ) — это имитация человеческого интеллекта в машинах, 

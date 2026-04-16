@@ -50,7 +50,7 @@ async def _validate_token(token: str) -> dict:
             data = r.json()
             if data.get("ok"):
                 return {"ok": True, "bot": data["result"]}
-            return {"ok": False, "description": data.get("description", "Invalid token")}
+            return {"ok": False, "description": data.get("description", "Неверный токен")}
     except Exception as e:
         return {"ok": False, "description": str(e)}
 
@@ -97,7 +97,7 @@ async def save_settings(req: SaveSettingsRequest):
     """Save token to .env file, then restart process so bot picks it up."""
     token = req.token.strip()
     if not token:
-        raise HTTPException(status_code=400, detail="Token cannot be empty")
+        raise HTTPException(status_code=400, detail="Токен не может быть пустым")
 
     # Validate before saving
     result = await _validate_token(token)
@@ -112,7 +112,7 @@ async def save_settings(req: SaveSettingsRequest):
     # Also update os.environ so sub-processes see it immediately
     os.environ["TELEGRAM_BOT_TOKEN"] = token
 
-    logger.info("Token saved to .env — scheduling restart in 2 s")
+    logger.info("Токен сохранён в .env — перезапуск через 2 с")
 
     # Restart: send SIGTERM to self; workflow manager will restart
     async def _deferred_restart():
@@ -123,6 +123,6 @@ async def save_settings(req: SaveSettingsRequest):
 
     return {
         "ok": True,
-        "message": "Token saved. Bot is restarting…",
+        "message": "Токен сохранён. Бот перезапускается…",
         "bot_info": result.get("bot"),
     }

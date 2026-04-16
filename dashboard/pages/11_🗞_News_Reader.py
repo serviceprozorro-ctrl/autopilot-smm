@@ -7,8 +7,8 @@ from datetime import datetime
 import html
 import re
 
-st.set_page_config(page_title="News Reader", page_icon="🗞", layout="wide")
-st.title("🗞 News Reader")
+st.set_page_config(page_title="Читалка новостей", page_icon="🗞", layout="wide")
+st.title("🗞 Читалка новостей")
 st.markdown("Читайте актуальные новости из RSS-лент прямо в панели")
 
 FEEDS = {

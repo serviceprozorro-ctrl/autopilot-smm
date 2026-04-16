@@ -186,7 +186,10 @@ if save_btn:
         else:
             desc = ""
             if result:
-                desc = result.get("description") or result.get("detail") or str(result)
+                raw = result.get("description") or result.get("detail") or str(result)
+                # translate common English API errors
+                desc = str(raw).replace("Unauthorized", "Неверный токен").replace(
+                    "Not Found", "Не найдено").replace("Bad Request", "Неверный запрос")
             else:
                 desc = "Нет ответа от сервиса"
             st.error(f"❌ Ошибка: {desc}")

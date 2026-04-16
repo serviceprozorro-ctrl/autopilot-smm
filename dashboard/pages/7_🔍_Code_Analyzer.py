@@ -5,8 +5,8 @@ import streamlit as st
 import subprocess
 import tempfile
 
-st.set_page_config(page_title="Code Analyzer", page_icon="🔍", layout="wide")
-st.title("🔍 Code Analyzer")
+st.set_page_config(page_title="Анализатор кода", page_icon="🔍", layout="wide")
+st.title("🔍 Анализатор кода")
 st.markdown("Анализ Python-кода через **Pylint** и **Pyflakes**")
 
 col_left, col_right = st.columns(2)

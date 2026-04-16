@@ -8,8 +8,8 @@ from qrcode.image.styles.colormasks import RadialGradiantColorMask, SquareGradia
 from PIL import Image
 import io
 
-st.set_page_config(page_title="QR Generator", page_icon="🧾", layout="wide")
-st.title("🧾 QR-код Generator")
+st.set_page_config(page_title="QR-генератор", page_icon="🧾", layout="wide")
+st.title("🧾 QR-генератор")
 
 tab_url, tab_wifi, tab_vcard, tab_text = st.tabs(["🔗 URL / Текст", "📶 WiFi", "👤 vCard", "💬 Произвольный текст"])
 

@@ -10,7 +10,7 @@ from datetime import datetime
 from utils.api_client import get_stats, get_accounts, is_bot_online
 
 st.set_page_config(
-    page_title="AutoPilot — SMM Control Panel",
+    page_title="AutoPilot — Панель управления",
     page_icon="🚀",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -19,13 +19,13 @@ st.set_page_config(
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("## 🚀 AutoPilot")
-    st.markdown("**SMM Control Panel**")
+    st.markdown("**Панель управления SMM**")
     st.divider()
     bot_status = is_bot_online()
     if bot_status:
-        st.success("🤖 Telegram Bot: Online")
+        st.success("🤖 Telegram Bot: Онлайн")
     else:
-        st.error("🤖 Telegram Bot: Offline")
+        st.error("🤖 Telegram Bot: Офлайн")
     st.caption(f"🕐 {datetime.now().strftime('%d.%m.%Y %H:%M')}")
     st.divider()
     st.page_link("pages/0_⚙️_Settings.py", label="⚙️ Настройки бота")
@@ -44,8 +44,8 @@ with st.sidebar:
     st.page_link("pages/11_🗞_News_Reader.py", label="🗞 Новости")
 
 # ── Header ────────────────────────────────────────────────────────────────────
-st.title("🚀 AutoPilot — SMM Control Panel")
-st.markdown("Панель управления мульти-аккаунтами и инструменты автоматизации в одном месте")
+st.title("🚀 AutoPilot — Панель управления")
+st.markdown("Управление мульти-аккаунтами и инструменты автоматизации в одном месте")
 st.divider()
 
 # ── Account stats from bot API ────────────────────────────────────────────────

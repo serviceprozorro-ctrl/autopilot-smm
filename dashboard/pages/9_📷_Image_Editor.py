@@ -5,8 +5,8 @@ import streamlit as st
 from PIL import Image, ImageFilter, ImageEnhance, ImageOps, ImageDraw, ImageFont
 import io
 
-st.set_page_config(page_title="Image Editor", page_icon="📷", layout="wide")
-st.title("📷 Image Editor")
+st.set_page_config(page_title="Редактор изображений", page_icon="📷", layout="wide")
+st.title("📷 Редактор изображений")
 st.markdown("Полноценный редактор фотографий: кроп, фильтры, эффекты, водяной знак и многое другое")
 
 uploaded = st.file_uploader("📤 Загрузите изображение", type=["png", "jpg", "jpeg", "webp", "bmp"])

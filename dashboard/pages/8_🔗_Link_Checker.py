@@ -7,8 +7,8 @@ import concurrent.futures
 from urllib.parse import urlparse
 import time
 
-st.set_page_config(page_title="Link Checker", page_icon="🔗", layout="wide")
-st.title("🔗 Link Checker")
+st.set_page_config(page_title="Проверка ссылок", page_icon="🔗", layout="wide")
+st.title("🔗 Проверка ссылок")
 st.markdown("Проверьте статус ссылок: живые, мёртвые, редиректы")
 
 EXAMPLE_URLS = """https://google.com
@@ -54,17 +54,17 @@ def check_url(url: str, timeout: int, follow: bool) -> dict:
         final_url = resp.url if follow else url
         return {
             "url": url,
-            "status": "✅ OK" if resp.status_code < 400 else ("🔄 Redirect" if 300 <= resp.status_code < 400 else "❌ Error"),
+            "status": "✅ Живая" if resp.status_code < 400 else ("🔄 Редирект" if 300 <= resp.status_code < 400 else "❌ Ошибка"),
             "code": resp.status_code,
             "time_ms": elapsed,
             "final_url": final_url,
         }
     except requests.exceptions.Timeout:
-        return {"url": url, "status": "⏰ Timeout", "code": "TIMEOUT", "time_ms": timeout * 1000, "final_url": url}
+        return {"url": url, "status": "⏰ Таймаут", "code": "TIMEOUT", "time_ms": timeout * 1000, "final_url": url}
     except requests.exceptions.ConnectionError:
-        return {"url": url, "status": "💀 Dead", "code": "CONN_ERR", "time_ms": int((time.time()-start)*1000), "final_url": url}
+        return {"url": url, "status": "💀 Мёртвая", "code": "CONN_ERR", "time_ms": int((time.time()-start)*1000), "final_url": url}
     except Exception as e:
-        return {"url": url, "status": "❓ Error", "code": str(e)[:30], "time_ms": 0, "final_url": url}
+        return {"url": url, "status": "❓ Ошибка", "code": str(e)[:30], "time_ms": 0, "final_url": url}
 
 
 if st.button("🔍 Проверить ссылки", type="primary", use_container_width=True):
@@ -97,7 +97,7 @@ if st.button("🔍 Проверить ссылки", type="primary", use_contain
         c3.metric("🔄 Редиректы", redirect)
         c4.metric("⏰ Таймаут", timeout_c)
 
-        # Sort: dead first
+        # Сначала мёртвые
         results.sort(key=lambda x: 0 if "💀" in str(x["status"]) or "❌" in str(x["status"]) else 1)
 
         table_data = [{
