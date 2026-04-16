@@ -270,7 +270,7 @@ def render_account_card(acc: dict, bot_online: bool, idx: int):
                 st.markdown('<span style="color:#ef4444;">✘ Нет</span>', unsafe_allow_html=True)
 
         with col_acts:
-            btn_cols = st.columns(2)
+            btn_cols = st.columns(3)
             acc_key = str(acc["id"])
 
             # Confirm delete state
@@ -296,10 +296,15 @@ def render_account_card(acc: dict, bot_online: bool, idx: int):
                     st.rerun()
             else:
                 with btn_cols[0]:
+                    if st.button("📊", key=f"details_{acc_key}_{idx}", help="Панель аккаунта: статистика, публикации, настройки",
+                                 use_container_width=True):
+                        st.session_state["selected_account"] = acc
+                        st.rerun()
+                with btn_cols[1]:
                     if st.button("🔄", key=f"refresh_{acc_key}_{idx}", help="Обновить сессию",
                                  use_container_width=True):
                         st.toast(f"Запрос на обновление @{acc['username']} отправлен", icon="🔄")
-                with btn_cols[1]:
+                with btn_cols[2]:
                     if st.button("🗑", key=f"del_{acc_key}_{idx}", help="Удалить аккаунт",
                                  use_container_width=True):
                         st.session_state[confirm_key] = True
@@ -390,6 +395,250 @@ def render_add_form(bot_online: bool, existing_usernames: set):
                     st.error(f"❌ Не удалось добавить аккаунт: {result}")
 
 
+def render_account_details(acc: dict, bot_online: bool):
+    """Подробная панель аккаунта: статистика, публикации, действия, настройки."""
+    import random
+    from datetime import datetime, timedelta
+
+    plat    = acc["platform"]
+    icon    = PLATFORM_ICONS.get(plat, "📱")
+    plat_lb = PLATFORM_LABELS.get(plat, plat.capitalize())
+    st_info = STATUS_LABELS.get(acc["status"], ("❓", acc["status"], "inactive"))
+    auth_info = AUTH_LABELS.get(acc["auth_type"], ("❓", acc["auth_type"]))
+    is_demo = acc.get("_demo", False)
+
+    # ── Top bar ────────────────────────────────────────────────────────────────
+    top_l, top_r = st.columns([5, 1])
+    with top_l:
+        st.markdown(f"## {icon} @{acc['username']}")
+        st.caption(f"{plat_lb} · ID: {acc['id']} · {auth_info[0]} {auth_info[1]} · "
+                   f"{st_info[0]} {st_info[1]}" + (" · 🎭 ДЕМО" if is_demo else ""))
+    with top_r:
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("← К списку", key="back_to_list", use_container_width=True):
+            st.session_state.pop("selected_account", None)
+            st.rerun()
+
+    st.divider()
+
+    # ── Deterministic mock metrics seeded by account id ────────────────────────
+    seed = abs(hash(str(acc["id"]))) % (10**6)
+    rng = random.Random(seed)
+    followers   = rng.randint(1_200, 250_000)
+    following   = rng.randint(80, 1_500)
+    posts_total = rng.randint(20, 800)
+    likes_total = rng.randint(5_000, 2_000_000)
+    views_30d   = rng.randint(10_000, 500_000)
+    eng_rate    = round(rng.uniform(1.5, 9.8), 2)
+    avg_likes   = rng.randint(50, 5_000)
+    avg_comm    = rng.randint(5, 500)
+    growth_30d  = round(rng.uniform(-2.5, 12.0), 1)
+
+    # ── KPI row ────────────────────────────────────────────────────────────────
+    k1, k2, k3, k4, k5, k6 = st.columns(6)
+    k1.metric("👥 Подписчики", f"{followers:,}".replace(",", " "), f"{growth_30d:+.1f}%")
+    k2.metric("👁 Просмотры (30д)", f"{views_30d:,}".replace(",", " "))
+    k3.metric("❤️ Лайки всего", f"{likes_total:,}".replace(",", " "))
+    k4.metric("📝 Публикаций", posts_total)
+    k5.metric("📊 Engagement", f"{eng_rate}%")
+    k6.metric("➕ Подписки", following)
+
+    st.divider()
+
+    # ── Tabs ──────────────────────────────────────────────────────────────────
+    tab_stats, tab_posts, tab_actions, tab_auto, tab_settings = st.tabs([
+        "📈 Аналитика", "🎬 Публикации", "⚡ Действия", "🤖 Автоматизация", "⚙️ Настройки",
+    ])
+
+    # ── 📈 АНАЛИТИКА ──────────────────────────────────────────────────────────
+    with tab_stats:
+        import pandas as pd
+
+        st.markdown("##### Динамика за 30 дней")
+        days = [datetime.now() - timedelta(days=i) for i in range(29, -1, -1)]
+        base_f = followers - sum(rng.randint(-50, 200) for _ in range(30))
+        followers_series, views_series = [], []
+        cur_f = base_f
+        for _ in range(30):
+            cur_f += rng.randint(-30, 250)
+            followers_series.append(cur_f)
+            views_series.append(rng.randint(500, 25_000))
+        df = pd.DataFrame({
+            "Дата": days,
+            "Подписчики": followers_series,
+            "Просмотры": views_series,
+        }).set_index("Дата")
+
+        c1, c2 = st.columns(2)
+        with c1:
+            st.markdown("**👥 Рост подписчиков**")
+            st.line_chart(df["Подписчики"], height=260)
+        with c2:
+            st.markdown("**👁 Просмотры по дням**")
+            st.bar_chart(df["Просмотры"], height=260)
+
+        st.markdown("##### Средние показатели на пост")
+        a1, a2, a3, a4 = st.columns(4)
+        a1.metric("❤️ Лайков", f"{avg_likes:,}".replace(",", " "))
+        a2.metric("💬 Комментариев", avg_comm)
+        a3.metric("🔁 Репостов", rng.randint(5, 300))
+        a4.metric("💾 Сохранений", rng.randint(10, 800))
+
+        st.markdown("##### Аудитория")
+        au1, au2 = st.columns(2)
+        with au1:
+            st.markdown("**🌍 География (топ-5)**")
+            geo = pd.DataFrame({
+                "Страна": ["Россия", "Украина", "Казахстан", "Беларусь", "Другие"],
+                "Доля %": sorted([rng.randint(5, 50) for _ in range(5)], reverse=True),
+            })
+            st.dataframe(geo, hide_index=True, use_container_width=True)
+        with au2:
+            st.markdown("**👫 Пол / возраст**")
+            age = pd.DataFrame({
+                "Группа": ["18–24 М", "18–24 Ж", "25–34 М", "25–34 Ж", "35+"],
+                "Доля %": [rng.randint(8, 30) for _ in range(5)],
+            })
+            st.dataframe(age, hide_index=True, use_container_width=True)
+
+    # ── 🎬 ПУБЛИКАЦИИ ─────────────────────────────────────────────────────────
+    with tab_posts:
+        st.markdown("##### Последние 10 публикаций")
+        captions = [
+            "Новый ролик 🔥", "Закулисье съёмок", "Лайфхак дня", "Топ-3 ошибки",
+            "Реакция на тренд", "Туториал за 60 секунд", "Q&A — отвечаю на вопросы",
+            "Распаковка", "Челлендж недели", "Мысли вслух",
+        ]
+        rows = []
+        for i in range(10):
+            d = datetime.now() - timedelta(days=i*2, hours=rng.randint(0, 23))
+            rows.append({
+                "Дата": d.strftime("%d.%m %H:%M"),
+                "Описание": captions[i],
+                "👁": f"{rng.randint(500, 80_000):,}".replace(",", " "),
+                "❤️": f"{rng.randint(50, 8_000):,}".replace(",", " "),
+                "💬": rng.randint(2, 400),
+                "🔁": rng.randint(0, 200),
+                "Статус": rng.choice(["✅ Опубликован", "✅ Опубликован", "✅ Опубликован", "📌 Закреплён"]),
+            })
+        import pandas as pd
+        st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
+
+        st.markdown("##### 📅 Запланированные публикации")
+        sched = []
+        for i in range(rng.randint(0, 4)):
+            d = datetime.now() + timedelta(days=i+1, hours=rng.randint(1, 22))
+            sched.append({
+                "Когда": d.strftime("%d.%m %H:%M"),
+                "Тип": rng.choice(["Видео", "Reels", "Story", "Пост"]),
+                "Название": rng.choice(captions),
+                "Статус": "⏳ В очереди",
+            })
+        if sched:
+            st.dataframe(pd.DataFrame(sched), hide_index=True, use_container_width=True)
+        else:
+            st.info("Нет запланированных публикаций. Создайте новую через вкладку «Действия».")
+
+    # ── ⚡ ДЕЙСТВИЯ ──────────────────────────────────────────────────────────
+    with tab_actions:
+        st.markdown("##### Быстрые действия")
+        ac1, ac2, ac3 = st.columns(3)
+        with ac1:
+            st.markdown("**📤 Опубликовать**")
+            up = st.file_uploader("Видео / фото", type=["mp4", "mov", "jpg", "png", "webp"],
+                                  key=f"upload_{acc['id']}")
+            caption = st.text_area("Описание", placeholder="Текст поста или подпись…",
+                                   key=f"caption_{acc['id']}", height=80)
+            schedule = st.checkbox("Запланировать", key=f"sch_{acc['id']}")
+            if schedule:
+                st.date_input("Дата", key=f"sch_date_{acc['id']}")
+                st.time_input("Время", key=f"sch_time_{acc['id']}")
+            if st.button("🚀 Опубликовать", type="primary", use_container_width=True,
+                         key=f"publish_{acc['id']}"):
+                if not up:
+                    st.warning("Загрузите файл")
+                else:
+                    st.success(f"✅ Поставлено в очередь: {up.name}")
+
+        with ac2:
+            st.markdown("**💬 Массовые действия**")
+            action = st.selectbox("Действие", [
+                "Лайкать публикации по хэштегу",
+                "Подписаться на подписчиков конкурента",
+                "Комментировать новые посты",
+                "Отписаться от неактивных",
+            ], key=f"mass_{acc['id']}")
+            target = st.text_input("Цель (хэштег / @user)", key=f"target_{acc['id']}",
+                                   placeholder="#подкаст или @competitor")
+            limit = st.number_input("Лимит за час", 10, 500, 50, key=f"lim_{acc['id']}")
+            if st.button("▶ Запустить", use_container_width=True, key=f"start_{acc['id']}"):
+                st.success(f"Задача «{action}» запущена. Лимит: {limit}/час")
+
+        with ac3:
+            st.markdown("**📊 Аналитический отчёт**")
+            period = st.selectbox("Период", ["7 дней", "30 дней", "90 дней", "Год"],
+                                  key=f"per_{acc['id']}")
+            fmt = st.selectbox("Формат", ["PDF", "Excel", "CSV"], key=f"fmt_{acc['id']}")
+            st.text_input("Email для отправки (необязательно)", key=f"em_{acc['id']}")
+            if st.button("📥 Сформировать отчёт", use_container_width=True, key=f"rep_{acc['id']}"):
+                st.success(f"Отчёт за {period} в формате {fmt} сформирован")
+
+    # ── 🤖 АВТОМАТИЗАЦИЯ ─────────────────────────────────────────────────────
+    with tab_auto:
+        st.markdown("##### Автоматические сценарии")
+        au1, au2 = st.columns(2)
+        with au1:
+            st.toggle("🤖 Автоответ на комментарии", value=False, key=f"ar_{acc['id']}")
+            st.toggle("👍 Автолайк публикаций по хэштегам", value=False, key=f"al_{acc['id']}")
+            st.toggle("➕ Автоподписка на целевую аудиторию", value=False, key=f"af_{acc['id']}")
+            st.toggle("👁 Авто-просмотр Stories", value=False, key=f"av_{acc['id']}")
+        with au2:
+            st.toggle("📅 Автопостинг по расписанию", value=True, key=f"ap_{acc['id']}")
+            st.toggle("🧹 Автоочистка ботов из подписчиков", value=False, key=f"ac_{acc['id']}")
+            st.toggle("📩 Автоответ в Direct/DM", value=False, key=f"ad_{acc['id']}")
+            st.toggle("🔔 Уведомления об упоминаниях", value=True, key=f"an_{acc['id']}")
+
+        st.markdown("##### Защита от блокировок")
+        p1, p2, p3 = st.columns(3)
+        p1.number_input("Действий в час", 10, 500, 80, key=f"ph_{acc['id']}")
+        p2.number_input("Пауза между действиями (сек)", 5, 300, 45, key=f"pp_{acc['id']}")
+        p3.selectbox("Режим работы", ["Имитация человека", "Стандартный", "Агрессивный"],
+                     key=f"pm_{acc['id']}")
+
+        if st.button("💾 Сохранить настройки автоматизации", type="primary",
+                     use_container_width=True, key=f"save_auto_{acc['id']}"):
+            st.success("Настройки сохранены")
+
+    # ── ⚙️ НАСТРОЙКИ ─────────────────────────────────────────────────────────
+    with tab_settings:
+        st.markdown("##### Параметры аккаунта")
+        s1, s2 = st.columns(2)
+        with s1:
+            st.text_input("Заметка", value="", placeholder="Например: основной", key=f"note_{acc['id']}")
+            st.selectbox("Группа", ["Без группы", "Основные", "Резервные", "Тестовые"],
+                         key=f"grp_{acc['id']}")
+            st.selectbox("Часовой пояс", ["UTC+3 Москва", "UTC+0 Лондон", "UTC-5 Нью-Йорк"],
+                         key=f"tz_{acc['id']}")
+        with s2:
+            st.text_input("🌐 Прокси (host:port)", placeholder="123.45.67.89:8080",
+                          key=f"prx_{acc['id']}")
+            st.text_input("Логин прокси", key=f"prxu_{acc['id']}")
+            st.text_input("Пароль прокси", type="password", key=f"prxp_{acc['id']}")
+
+        st.markdown("##### Сессия и токены")
+        st.code(f"Тип входа: {auth_info[1]}\nСессия: {'есть' if acc['has_session'] else 'нет'}\n"
+                f"Создан: {datetime.now() - timedelta(days=rng.randint(10, 400)):%d.%m.%Y}")
+
+        st.markdown("##### Опасная зона")
+        d1, d2, d3 = st.columns(3)
+        if d1.button("🔄 Переавторизовать", use_container_width=True, key=f"reauth_{acc['id']}"):
+            st.info("Запрос на повторную авторизацию отправлен")
+        if d2.button("⏸ Приостановить", use_container_width=True, key=f"pause_{acc['id']}"):
+            st.warning("Аккаунт приостановлен")
+        if d3.button("🗑 Удалить аккаунт", use_container_width=True, key=f"del_acc_{acc['id']}"):
+            st.error("Подтвердите удаление в списке аккаунтов")
+
+
 def render_empty_state():
     st.markdown("""
 <div class="empty-state">
@@ -412,8 +661,13 @@ def render_empty_state():
 # MAIN
 # ══════════════════════════════════════════════════════════════════════════════
 
-# ── Header ────────────────────────────────────────────────────────────────────
+# ── Detail view (если выбран аккаунт) ─────────────────────────────────────────
 bot_online = is_bot_online()
+if st.session_state.get("selected_account"):
+    render_account_details(st.session_state["selected_account"], bot_online)
+    st.stop()
+
+# ── Header ────────────────────────────────────────────────────────────────────
 col_title, col_status, col_refresh = st.columns([4, 1.5, 0.8])
 with col_title:
     st.title("📱 Управление аккаунтами")
