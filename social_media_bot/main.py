@@ -65,9 +65,11 @@ def create_app() -> FastAPI:
 
     from api.routes.accounts import router as accounts_router
     from api.routes.stats import router as stats_router
+    from api.routes.settings import router as settings_router
 
     app.include_router(accounts_router, prefix="/api")
     app.include_router(stats_router, prefix="/api")
+    app.include_router(settings_router)
 
     @app.get("/", tags=["health"])
     async def health_check():

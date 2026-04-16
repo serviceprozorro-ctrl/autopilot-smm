@@ -28,6 +28,8 @@ with st.sidebar:
         st.error("🤖 Telegram Bot: Offline")
     st.caption(f"🕐 {datetime.now().strftime('%d.%m.%Y %H:%M')}")
     st.divider()
+    st.page_link("pages/0_⚙️_Settings.py", label="⚙️ Настройки бота")
+    st.divider()
     st.markdown("### 🛠 Инструменты")
     st.page_link("pages/1_📱_Accounts.py", label="📱 Аккаунты")
     st.page_link("pages/2_🖼_Background_Remover.py", label="🖼 Убрать фон")
