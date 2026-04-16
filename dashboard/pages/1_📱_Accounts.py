@@ -334,7 +334,7 @@ def render_add_form(bot_online: bool, existing_usernames: set):
         # Dynamic extra fields
         session_data = ""
         if auth_type == "cookies":
-            st.markdown('<span style="color:#94a3b8;font-size:13px;">Вставьте Cookies в формате JSON</span>',
+            st.markdown('<span style="color:#94a3b8;font-size:13px;">Вставьте Cookies в формате JSON (экспорт из браузера)</span>',
                         unsafe_allow_html=True)
             session_data = st.text_area(
                 "Cookies JSON",
@@ -342,9 +342,17 @@ def render_add_form(bot_online: bool, existing_usernames: set):
                 height=100, key="add_session",
             )
         elif auth_type == "login_password":
-            st.info("🔐 Логин и пароль вводятся в Telegram-боте — введите username выше и нажмите «Добавить». Бот запросит пароль в личных сообщениях.")
+            st.markdown('<span style="color:#94a3b8;font-size:13px;">Введите пароль от аккаунта — он будет зашифрован и сохранён локально.</span>',
+                        unsafe_allow_html=True)
+            password = st.text_input(
+                "Пароль *",
+                placeholder="Ваш пароль от аккаунта",
+                type="password",
+                key="add_password",
+            )
+            session_data = password
         elif auth_type == "qr_code":
-            st.info("📱 QR-код будет отправлен вам в Telegram. После создания аккаунта — откройте бота и подтвердите вход.")
+            st.info("📱 Аккаунт будет создан в режиме «Ожидает». Откройте приложение TikTok → Профиль → ⋯ → «Войти в другой аккаунт» → QR-код, и отсканируйте код, который появится в боте.")
         elif auth_type == "api":
             session_data = st.text_input("API ключ / токен", placeholder="ya29.xxx…", key="add_api_key",
                                          type="password")
