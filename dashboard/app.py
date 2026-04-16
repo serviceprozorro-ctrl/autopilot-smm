@@ -35,7 +35,7 @@ with st.sidebar:
     st.page_link("pages/2_🖼_Background_Remover.py", label="🖼 Убрать фон")
     st.page_link("pages/3_🧾_QR_Generator.py", label="🧾 QR-код")
     st.page_link("pages/4_💻_Fake_Data.py", label="💻 Fake Data")
-    st.page_link("pages/5_📥_YouTube_Downloader.py", label="📥 YouTube DL")
+    st.page_link("pages/5_📥_Media_Downloader.py", label="📥 Media Downloader")
     st.page_link("pages/6_📊_Resource_Monitor.py", label="📊 Мониторинг")
     st.page_link("pages/7_🔍_Code_Analyzer.py", label="🔍 Анализ кода")
     st.page_link("pages/8_🔗_Link_Checker.py", label="🔗 Link Checker")
@@ -148,7 +148,7 @@ tools = [
     ("🖼", "Background Remover", "Убирает фон с фото за секунду", "pages/2_🖼_Background_Remover.py"),
     ("🧾", "QR Generator", "QR-коды для ссылок, текста, WiFi", "pages/3_🧾_QR_Generator.py"),
     ("💻", "Fake Data", "Реалистичные тестовые данные", "pages/4_💻_Fake_Data.py"),
-    ("📥", "YouTube DL", "Скачать видео/аудио с YouTube", "pages/5_📥_YouTube_Downloader.py"),
+    ("📥", "Media Downloader", "1000+ сайтов: YT, TikTok, Insta, SC…", "pages/5_📥_Media_Downloader.py"),
     ("📊", "Resource Monitor", "Мониторинг CPU, RAM, диска", "pages/6_📊_Resource_Monitor.py"),
     ("🔍", "Code Analyzer", "Анализ кода через Pylint/Pyflakes", "pages/7_🔍_Code_Analyzer.py"),
     ("🔗", "Link Checker", "Проверка живых ссылок", "pages/8_🔗_Link_Checker.py"),
