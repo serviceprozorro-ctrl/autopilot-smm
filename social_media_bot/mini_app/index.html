@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>AutoPilot</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --bg:       var(--tg-theme-bg-color,       #0f172a);
+      --bg2:      var(--tg-theme-secondary-bg-color, #1e293b);
+      --text:     var(--tg-theme-text-color,     #e2e8f0);
+      --hint:     var(--tg-theme-hint-color,      #94a3b8);
+      --link:     var(--tg-theme-link-color,      #6366f1);
+      --btn:      var(--tg-theme-button-color,    #6366f1);
+      --btn-text: var(--tg-theme-button-text-color, #fff);
+      --border:   #1e293b;
+      --radius:   14px;
+      --card-bg:  #111827;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 15px;
+      min-height: 100vh;
+      padding-bottom: 80px;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 16px 10px;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .header-row { display: flex; align-items: center; justify-content: space-between; }
+    .header-title { font-size: 18px; font-weight: 700; }
+    .header-sub { font-size: 12px; color: var(--hint); margin-top: 2px; }
+    .status-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      display: inline-block; margin-right: 6px;
+    }
+    .dot-green { background: #10b981; box-shadow: 0 0 6px #10b981; }
+    .dot-red   { background: #ef4444; }
+
+    /* ── Nav tabs ── */
+    .nav {
+      display: flex; gap: 4px;
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      padding: 0 12px;
+      overflow-x: auto; scrollbar-width: none;
+    }
+    .nav::-webkit-scrollbar { display: none; }
+    .nav-btn {
+      background: none; border: none; cursor: pointer;
+      color: var(--hint); font-size: 13px; font-weight: 600;
+      padding: 10px 10px 8px;
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+      transition: color .2s, border-color .2s;
+    }
+    .nav-btn.active { color: var(--link); border-bottom-color: var(--link); }
+
+    /* ── Page sections ── */
+    .page { display: none; padding: 16px; }
+    .page.active { display: block; }
+
+    /* ── KPI grid ── */
+    .kpi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+    .kpi-card {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px 16px;
+      text-align: center;
+    }
+    .kpi-val  { font-size: 26px; font-weight: 800; }
+    .kpi-lbl  { font-size: 11px; color: var(--hint); margin-top: 3px; text-transform: uppercase; letter-spacing: .5px; }
+
+    /* ── Section header ── */
+    .section-title {
+      font-size: 13px; font-weight: 700; color: var(--hint);
+      text-transform: uppercase; letter-spacing: .5px;
+      margin: 18px 0 8px;
+    }
+
+    /* ── Account card ── */
+    .acc-card {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px;
+    }
+    .acc-top { display: flex; align-items: center; justify-content: space-between; }
+    .acc-name { font-weight: 700; font-size: 15px; }
+    .acc-meta { font-size: 12px; color: var(--hint); margin-top: 3px; }
+    .badge {
+      display: inline-block; border-radius: 20px;
+      padding: 2px 9px; font-size: 11px; font-weight: 700;
+    }
+    .badge-active   { background:#064e3b; color:#6ee7b7; }
+    .badge-warning  { background:#451a03; color:#fcd34d; }
+    .badge-banned   { background:#450a0a; color:#fca5a5; }
+    .badge-inactive { background:#1e293b; color:#94a3b8; }
+    .badge-pending  { background:#1e1b4b; color:#a5b4fc; }
+
+    /* ── Platform chip ── */
+    .plat-chip {
+      display: inline-block; border-radius: 6px;
+      padding: 2px 7px; font-size: 11px; font-weight: 600; margin-right: 5px;
+    }
+    .plat-tiktok    { background:#1a0022; color:#ee1d52; border:1px solid #330033; }
+    .plat-instagram { background:#1a0a22; color:#c13584; border:1px solid #2d1040; }
+    .plat-youtube   { background:#1a0a0a; color:#ff4444; border:1px solid #2d1010; }
+
+    /* ── Auth chip ── */
+    .auth-chip { font-size: 11px; color: var(--hint); }
+
+    /* ── Spinner ── */
+    .spinner {
+      border: 3px solid var(--border);
+      border-top-color: var(--link);
+      border-radius: 50%;
+      width: 28px; height: 28px;
+      animation: spin .8s linear infinite;
+      margin: 40px auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Error block ── */
+    .error-box {
+      background: #1a0808; border: 1px solid #450a0a;
+      border-radius: var(--radius); padding: 16px; text-align: center;
+      color: #fca5a5; font-size: 13px;
+    }
+
+    /* ── Empty state ── */
+    .empty { text-align: center; padding: 40px 20px; color: var(--hint); }
+    .empty-icon { font-size: 44px; margin-bottom: 10px; }
+    .empty-txt  { font-size: 14px; }
+
+    /* ── Big button ── */
+    .btn-primary {
+      display: block; width: 100%;
+      background: var(--btn); color: var(--btn-text);
+      border: none; border-radius: var(--radius);
+      padding: 14px; font-size: 15px; font-weight: 700;
+      cursor: pointer; margin-top: 16px;
+      transition: opacity .2s;
+    }
+    .btn-primary:active { opacity: .8; }
+    .btn-primary:disabled { opacity: .4; cursor: default; }
+
+    /* ── Stats chart bar ── */
+    .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .bar-label { width: 80px; font-size: 13px; color: var(--hint); }
+    .bar-track  { flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+    .bar-fill   { height: 100%; border-radius: 4px; transition: width .6s; }
+    .bar-count  { width: 24px; text-align: right; font-size: 13px; font-weight: 700; }
+
+    /* ── Info item ── */
+    .info-item {
+      display: flex; justify-content: space-between;
+      padding: 10px 0; border-bottom: 1px solid var(--border);
+    }
+    .info-item:last-child { border-bottom: none; }
+    .info-key { color: var(--hint); font-size: 13px; }
+    .info-val { font-weight: 600; font-size: 13px; }
+
+    /* ── Bottom bar ── */
+    .bottom-bar {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: var(--card-bg);
+      border-top: 1px solid var(--border);
+      padding: 10px 16px;
+      padding-bottom: calc(10px + env(safe-area-inset-bottom));
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-row">
+    <div>
+      <div class="header-title">🚀 AutoPilot</div>
+      <div class="header-sub" id="hdr-sub">Загрузка...</div>
+    </div>
+    <div id="bot-status"></div>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="nav-btn active" onclick="showPage('dashboard')">📊 Дашборд</button>
+  <button class="nav-btn" onclick="showPage('accounts')">📱 Аккаунты</button>
+  <button class="nav-btn" onclick="showPage('add')">➕ Добавить</button>
+  <button class="nav-btn" onclick="showPage('info')">ℹ️ Инфо</button>
+</div>
+
+<!-- ══════════ DASHBOARD ══════════ -->
+<div id="page-dashboard" class="page active">
+  <div id="kpi-loading"><div class="spinner"></div></div>
+  <div id="kpi-content" style="display:none">
+    <div class="kpi-grid" id="kpi-grid"></div>
+
+    <div class="section-title">По платформам</div>
+    <div class="acc-card">
+      <div id="platform-bars"></div>
+    </div>
+
+    <div class="section-title">По статусам</div>
+    <div class="acc-card">
+      <div id="status-bars"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ ACCOUNTS ══════════ -->
+<div id="page-accounts" class="page">
+  <div id="acc-loading"><div class="spinner"></div></div>
+  <div id="acc-content" style="display:none">
+    <div id="acc-list"></div>
+  </div>
+</div>
+
+<!-- ══════════ ADD ACCOUNT ══════════ -->
+<div id="page-add" class="page">
+  <div class="section-title">Новый аккаунт</div>
+  <div class="acc-card">
+    <div style="margin-bottom:12px">
+      <label style="font-size:12px;color:var(--hint);display:block;margin-bottom:4px">ПЛАТФОРМА</label>
+      <select id="add-platform" onchange="updateAuthOptions()" style="
+        width:100%;background:var(--bg2);color:var(--text);
+        border:1px solid var(--border);border-radius:8px;padding:10px;font-size:14px;
+      ">
+        <option value="tiktok">🎵 TikTok</option>
+        <option value="instagram">📸 Instagram</option>
+        <option value="youtube">▶️ YouTube</option>
+      </select>
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:12px;color:var(--hint);display:block;margin-bottom:4px">USERNAME</label>
+      <input id="add-username" type="text" placeholder="без символа @"
+        style="width:100%;background:var(--bg2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:14px;outline:none;">
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:12px;color:var(--hint);display:block;margin-bottom:4px">СПОСОБ ВХОДА</label>
+      <select id="add-auth" onchange="updateSessionField()" style="
+        width:100%;background:var(--bg2);color:var(--text);
+        border:1px solid var(--border);border-radius:8px;padding:10px;font-size:14px;
+      "></select>
+    </div>
+    <div id="session-field" style="margin-bottom:12px">
+      <label style="font-size:12px;color:var(--hint);display:block;margin-bottom:4px" id="session-label">ДАННЫЕ СЕССИИ</label>
+      <textarea id="add-session" rows="3" placeholder='{"sessionid": "..."}'
+        style="width:100%;background:var(--bg2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:13px;resize:vertical;outline:none;font-family:monospace;"></textarea>
+    </div>
+    <div id="add-hint" style="font-size:12px;color:var(--hint);margin-bottom:8px;line-height:1.5;"></div>
+    <div id="add-error" style="color:#fca5a5;font-size:13px;margin-bottom:8px;display:none;"></div>
+    <button class="btn-primary" id="add-btn" onclick="submitAddAccount()">➕ Добавить аккаунт</button>
+  </div>
+</div>
+
+<!-- ══════════ INFO ══════════ -->
+<div id="page-info" class="page">
+  <div class="section-title">О системе</div>
+  <div class="acc-card">
+    <div class="info-item"><span class="info-key">Версия</span><span class="info-val">1.0.0</span></div>
+    <div class="info-item"><span class="info-key">Платформы</span><span class="info-val">TikTok · Instagram · YouTube</span></div>
+    <div class="info-item"><span class="info-key">API</span><span class="info-val" id="api-url-display">—</span></div>
+    <div class="info-item"><span class="info-key">Бот</span><span class="info-val" id="bot-name-display">—</span></div>
+  </div>
+
+  <div class="section-title">Поддерживаемые методы</div>
+  <div class="acc-card">
+    <div class="info-item"><span class="info-key">🍪 Cookies</span><span class="info-val">TikTok · Instagram · YouTube</span></div>
+    <div class="info-item"><span class="info-key">🔐 Логин+Пароль</span><span class="info-val">TikTok · Instagram</span></div>
+    <div class="info-item"><span class="info-key">📱 QR-код</span><span class="info-val">TikTok</span></div>
+    <div class="info-item"><span class="info-key">🔑 API ключ</span><span class="info-val">YouTube</span></div>
+  </div>
+
+  <button class="btn-primary" onclick="loadAll()" style="margin-top:16px">🔄 Обновить данные</button>
+</div>
+
+<script>
+  const tg = window.Telegram.WebApp;
+  tg.ready();
+  tg.expand();
+
+  // ── Config ────────────────────────────────────────────────────────────────
+  const API_BASE = window.location.origin + '/api';
+  const PLATFORM_LABELS = { tiktok: '🎵 TikTok', instagram: '📸 Instagram', youtube: '▶️ YouTube' };
+  const PLATFORM_CSS    = { tiktok: 'plat-tiktok', instagram: 'plat-instagram', youtube: 'plat-youtube' };
+  const AUTH_BY_PLAT    = {
+    tiktok:    [['qr_code','📱 QR-код'],['login_password','🔐 Логин+Пароль'],['cookies','🍪 Cookies']],
+    instagram: [['login_password','🔐 Логин+Пароль'],['cookies','🍪 Cookies']],
+    youtube:   [['cookies','🍪 Cookies'],['api','🔑 API ключ']],
+  };
+  const STATUS_MAP = {
+    active:   ['✅ Активен',   'badge-active'],
+    banned:   ['🚫 Забанен',   'badge-banned'],
+    inactive: ['⏸ Неактивен', 'badge-inactive'],
+    pending:  ['⏳ Ожидает',   'badge-pending'],
+    warning:  ['⚠️ Внимание',  'badge-warning'],
+  };
+  const AUTH_LABELS = { cookies:'🍪 Cookies', login_password:'🔐 Лог+Пасс', qr_code:'📱 QR-код', api:'🔑 API' };
+
+  // ── Navigation ────────────────────────────────────────────────────────────
+  function showPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    const idx = ['dashboard','accounts','add','info'].indexOf(name);
+    document.querySelectorAll('.nav-btn')[idx].classList.add('active');
+    if (name === 'add') updateAuthOptions();
+  }
+
+  // ── Fetch helpers ─────────────────────────────────────────────────────────
+  async function apiFetch(path) {
+    try {
+      const r = await fetch(API_BASE + path, { headers: { 'Accept': 'application/json' } });
+      if (!r.ok) return null;
+      return await r.json();
+    } catch { return null; }
+  }
+
+  // ── Load dashboard ────────────────────────────────────────────────────────
+  async function loadDashboard() {
+    const stats = await apiFetch('/stats/summary');
+    document.getElementById('kpi-loading').style.display = 'none';
+    const kpiContent = document.getElementById('kpi-content');
+    kpiContent.style.display = 'block';
+
+    if (!stats) {
+      kpiContent.innerHTML = '<div class="error-box">⚠️ Не удалось загрузить статистику.<br>Проверьте подключение к серверу.</div>';
+      return;
+    }
+
+    const total    = stats.total_accounts || 0;
+    const byPlat   = stats.by_platform || {};
+    const byStat   = stats.by_status || {};
+    const active   = byStat.active || 0;
+    const banned   = byStat.banned || 0;
+    const inactive = byStat.inactive || 0;
+    const tiktok   = byPlat.tiktok || 0;
+    const insta    = byPlat.instagram || 0;
+    const yt       = byPlat.youtube || 0;
+
+    document.getElementById('hdr-sub').textContent = `Всего аккаунтов: ${total}`;
+
+    document.getElementById('kpi-grid').innerHTML = `
+      <div class="kpi-card"><div class="kpi-val">${total}</div><div class="kpi-lbl">Всего</div></div>
+      <div class="kpi-card"><div class="kpi-val" style="color:#10b981">${active}</div><div class="kpi-lbl">Активных</div></div>
+      <div class="kpi-card"><div class="kpi-val" style="color:#ef4444">${banned}</div><div class="kpi-lbl">Забаненных</div></div>
+      <div class="kpi-card"><div class="kpi-val" style="color:#94a3b8">${inactive}</div><div class="kpi-lbl">Неактивных</div></div>
+    `;
+
+    const maxP = Math.max(tiktok, insta, yt, 1);
+    document.getElementById('platform-bars').innerHTML = [
+      ['🎵 TikTok', tiktok, '#ee1d52', maxP],
+      ['📸 Instagram', insta, '#c13584', maxP],
+      ['▶️ YouTube', yt, '#ff4444', maxP],
+    ].map(([lbl, val, clr, mx]) => `
+      <div class="bar-row">
+        <div class="bar-label">${lbl}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${Math.round(val/mx*100)}%;background:${clr}"></div></div>
+        <div class="bar-count">${val}</div>
+      </div>
+    `).join('');
+
+    const maxS = Math.max(active, banned, inactive, 1);
+    document.getElementById('status-bars').innerHTML = [
+      ['✅ Активных', active, '#10b981', maxS],
+      ['🚫 Забаненных', banned, '#ef4444', maxS],
+      ['⏸ Неактивных', inactive, '#94a3b8', maxS],
+    ].map(([lbl, val, clr, mx]) => `
+      <div class="bar-row">
+        <div class="bar-label" style="width:100px">${lbl}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${Math.round(val/mx*100)}%;background:${clr}"></div></div>
+        <div class="bar-count">${val}</div>
+      </div>
+    `).join('');
+  }
+
+  // ── Load accounts ─────────────────────────────────────────────────────────
+  async function loadAccounts() {
+    const accs = await apiFetch('/accounts/list');
+    document.getElementById('acc-loading').style.display = 'none';
+    const content = document.getElementById('acc-content');
+    content.style.display = 'block';
+    const list = document.getElementById('acc-list');
+
+    if (!accs) {
+      list.innerHTML = '<div class="error-box">⚠️ Не удалось загрузить аккаунты.</div>'; return;
+    }
+    if (!Array.isArray(accs) || accs.length === 0) {
+      list.innerHTML = `
+        <div class="empty">
+          <div class="empty-icon">📱</div>
+          <div class="empty-txt">Аккаунтов пока нет.<br>Добавьте первый во вкладке ➕</div>
+        </div>`; return;
+    }
+
+    list.innerHTML = accs.map(acc => {
+      const [stLabel, stClass] = STATUS_MAP[acc.status] || ['❓ Неизвестен', 'badge-inactive'];
+      const platClass = PLATFORM_CSS[acc.platform] || '';
+      const platLabel = PLATFORM_LABELS[acc.platform] || acc.platform;
+      const authLabel = AUTH_LABELS[acc.auth_type] || acc.auth_type;
+      const sessIcon  = acc.has_session ? '✔ Сессия есть' : '✘ Нет сессии';
+      const sessColor = acc.has_session ? '#10b981' : '#ef4444';
+      return `
+        <div class="acc-card">
+          <div class="acc-top">
+            <div class="acc-name">@${acc.username}</div>
+            <span class="badge ${stClass}">${stLabel}</span>
+          </div>
+          <div class="acc-meta" style="margin-top:6px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <span class="plat-chip ${platClass}">${platLabel}</span>
+            <span class="auth-chip">${authLabel}</span>
+            <span style="font-size:11px;color:${sessColor}">${sessIcon}</span>
+            <span style="font-size:11px;color:var(--hint)">ID: ${acc.id}</span>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // ── Add account form ──────────────────────────────────────────────────────
+  function updateAuthOptions() {
+    const plat = document.getElementById('add-platform').value;
+    const sel  = document.getElementById('add-auth');
+    sel.innerHTML = (AUTH_BY_PLAT[plat] || []).map(([v,l]) => `<option value="${v}">${l}</option>`).join('');
+    updateSessionField();
+  }
+
+  function updateSessionField() {
+    const auth  = document.getElementById('add-auth').value;
+    const field = document.getElementById('session-field');
+    const hint  = document.getElementById('add-hint');
+    const lbl   = document.getElementById('session-label');
+    if (auth === 'cookies') {
+      field.style.display = 'block';
+      lbl.textContent = 'COOKIES JSON';
+      document.getElementById('add-session').placeholder = '{"sessionid": "abc123", ...}';
+      hint.textContent = 'Экспортируйте cookies из браузера (расширение Cookie-Editor) в формате JSON.';
+    } else if (auth === 'api') {
+      field.style.display = 'block';
+      lbl.textContent = 'API КЛЮЧ / ТОКЕН';
+      document.getElementById('add-session').placeholder = 'ya29.xxx...';
+      hint.textContent = 'Укажите OAuth2 токен или API ключ.';
+    } else if (auth === 'login_password') {
+      field.style.display = 'none';
+      hint.textContent = '🔐 После нажатия «Добавить» бот запросит пароль в личных сообщениях.';
+    } else if (auth === 'qr_code') {
+      field.style.display = 'none';
+      hint.textContent = '📱 После нажатия «Добавить» бот пришлёт QR-код для сканирования.';
+    } else {
+      field.style.display = 'none';
+      hint.textContent = '';
+    }
+  }
+
+  async function submitAddAccount() {
+    const platform  = document.getElementById('add-platform').value;
+    const username  = document.getElementById('add-username').value.trim().replace(/^@/, '');
+    const auth_type = document.getElementById('add-auth').value;
+    const session   = document.getElementById('add-session').value.trim();
+    const errEl     = document.getElementById('add-error');
+    const btn       = document.getElementById('add-btn');
+
+    errEl.style.display = 'none';
+
+    if (!username || username.length < 2) {
+      errEl.textContent = '❌ Введите корректный username (минимум 2 символа)';
+      errEl.style.display = 'block'; return;
+    }
+    if (auth_type === 'cookies' && session) {
+      try { JSON.parse(session); }
+      catch { errEl.textContent = '❌ Cookies должны быть в формате JSON'; errEl.style.display = 'block'; return; }
+    }
+
+    btn.disabled = true;
+    btn.textContent = '⏳ Добавляю...';
+
+    const body = { platform, username, auth_type, session_data: session || null };
+    try {
+      const r = await fetch(API_BASE + '/accounts/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await r.json();
+      if (r.ok && data.id) {
+        tg.showAlert(`✅ Аккаунт @${data.username} добавлен!`);
+        document.getElementById('add-username').value = '';
+        document.getElementById('add-session').value = '';
+        loadAll();
+        showPage('accounts');
+      } else {
+        const msg = data.detail || data.message || JSON.stringify(data);
+        errEl.textContent = `❌ Ошибка: ${msg}`;
+        errEl.style.display = 'block';
+      }
+    } catch (e) {
+      errEl.textContent = `❌ Ошибка сети: ${e.message}`;
+      errEl.style.display = 'block';
+    }
+    btn.disabled = false;
+    btn.textContent = '➕ Добавить аккаунт';
+  }
+
+  // ── Info page ─────────────────────────────────────────────────────────────
+  document.getElementById('api-url-display').textContent = API_BASE;
+  document.getElementById('bot-name-display').textContent = '@CONSOLE_EPIC_STAR_BOT';
+
+  // ── Bot status dot ────────────────────────────────────────────────────────
+  async function checkBotStatus() {
+    const r = await fetch(window.location.origin + '/', { method:'GET' }).catch(() => null);
+    const online = r && r.ok;
+    document.getElementById('bot-status').innerHTML =
+      `<span class="status-dot ${online?'dot-green':'dot-red'}"></span>`;
+  }
+
+  // ── Load everything ───────────────────────────────────────────────────────
+  async function loadAll() {
+    document.getElementById('kpi-loading').style.display = 'block';
+    document.getElementById('kpi-content').style.display = 'none';
+    document.getElementById('acc-loading').style.display = 'block';
+    document.getElementById('acc-content').style.display = 'none';
+    await Promise.all([loadDashboard(), loadAccounts(), checkBotStatus()]);
+  }
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+  updateAuthOptions();
+  loadAll();
+
+  // Set Telegram main button (close)
+  tg.BackButton.onClick(() => tg.close());
+
+  // Apply Telegram color vars
+  document.documentElement.style.setProperty('--btn', tg.themeParams.button_color || '#6366f1');
+  document.documentElement.style.setProperty('--btn-text', tg.themeParams.button_text_color || '#fff');
+</script>
+</body>
+</html>
