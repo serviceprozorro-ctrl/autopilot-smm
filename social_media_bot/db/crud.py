@@ -15,13 +15,16 @@ async def create_account(
     username: str,
     auth_type: str,
     session_data: Optional[str] = None,
+    password_data: Optional[str] = None,
+    status: str = AccountStatus.ACTIVE,
 ) -> Account:
     account = Account(
         platform=platform,
         username=username,
         auth_type=auth_type,
         session_data=session_data,
-        status=AccountStatus.ACTIVE,
+        password_data=password_data,
+        status=status,
     )
     db.add(account)
     await db.commit()
@@ -66,4 +69,19 @@ async def update_account_status(
     await db.commit()
     await db.refresh(account)
     logger.info("Updated account id=%s status=%s", account_id, status)
+    return account
+
+
+async def update_account_session(
+    db: AsyncSession, account_id: int, session_data: str, status: str = AccountStatus.ACTIVE
+) -> Optional[Account]:
+    """Update session data after successful QR scan or re-auth."""
+    account = await get_account_by_id(db, account_id)
+    if not account:
+        return None
+    account.session_data = session_data
+    account.status = status
+    await db.commit()
+    await db.refresh(account)
+    logger.info("Updated session for account id=%s", account_id)
     return account

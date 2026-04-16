@@ -15,6 +15,8 @@ class Platform(str, PyEnum):
 
 class AuthType(str, PyEnum):
     COOKIES = "cookies"
+    LOGIN_PASSWORD = "login_password"
+    QR_CODE = "qr_code"
     API = "api"
 
 
@@ -22,6 +24,7 @@ class AccountStatus(str, PyEnum):
     ACTIVE = "active"
     BANNED = "banned"
     INACTIVE = "inactive"
+    PENDING = "pending"  # waiting for QR scan confirmation
 
 
 class Account(Base):
@@ -31,7 +34,10 @@ class Account(Base):
     platform: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
     username: Mapped[str] = mapped_column(String(255), nullable=False)
     auth_type: Mapped[str] = mapped_column(String(50), nullable=False, default=AuthType.COOKIES)
+    # Encrypted: stores cookies JSON, encrypted password, or QR session token
     session_data: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # For login+password: stores encrypted password separately
+    password_data: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(String(50), nullable=False, default=AccountStatus.ACTIVE)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
