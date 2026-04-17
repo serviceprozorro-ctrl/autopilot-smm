@@ -35,6 +35,10 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     await init_db()
     logger.info("Database ready")
 
+    # Запускаем фоновый планировщик публикаций
+    from core.posting.scheduler import start_scheduler, stop_scheduler
+    start_scheduler()
+
     logger.info("Starting Telegram bot polling...")
     from bot.bot import create_bot, create_dispatcher
     from aiogram.types import MenuButtonWebApp, WebAppInfo
@@ -59,6 +63,10 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     yield
 
     logger.info("Shutting down...")
+    try:
+        stop_scheduler()
+    except Exception:
+        pass
     polling_task.cancel()
     try:
         await polling_task
@@ -87,9 +95,11 @@ def create_app() -> FastAPI:
     from api.routes.accounts import router as accounts_router
     from api.routes.stats import router as stats_router
     from api.routes.settings import router as settings_router
+    from api.routes.posts import router as posts_router
 
     app.include_router(accounts_router, prefix="/api")
     app.include_router(stats_router, prefix="/api")
+    app.include_router(posts_router, prefix="/api")
     app.include_router(settings_router)
 
     # Serve Mini Web App static assets

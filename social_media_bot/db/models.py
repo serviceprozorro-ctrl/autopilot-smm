@@ -53,3 +53,39 @@ class Account(Base):
 
     def __repr__(self) -> str:
         return f"<Account id={self.id} platform={self.platform} username={self.username}>"
+
+
+class PostStatus(str, PyEnum):
+    DRAFT = "draft"
+    SCHEDULED = "scheduled"
+    PUBLISHING = "publishing"
+    PUBLISHED = "published"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+
+
+class ScheduledPost(Base):
+    """Запланированная публикация для одного аккаунта."""
+    __tablename__ = "scheduled_posts"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    account_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    platform: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
+    media_path: Mapped[str | None] = mapped_column(Text, nullable=True)
+    media_kind: Mapped[str] = mapped_column(String(20), nullable=False, default="video")  # video|image|reels|story
+    caption: Mapped[str | None] = mapped_column(Text, nullable=True)
+    hashtags: Mapped[str | None] = mapped_column(Text, nullable=True)
+    scheduled_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True)
+    status: Mapped[str] = mapped_column(String(50), nullable=False, default=PostStatus.SCHEDULED, index=True)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    extra_options: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False,
+    )
+
+    def __repr__(self) -> str:
+        return f"<ScheduledPost id={self.id} acc={self.account_id} at={self.scheduled_at} status={self.status}>"
