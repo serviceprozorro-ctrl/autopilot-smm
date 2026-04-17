@@ -5,7 +5,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 import json
 import time
 import streamlit as st
-from utils.api_client import get_accounts, get_stats, add_account, delete_account, is_bot_online
+from utils.api_client import (
+    get_accounts, get_stats, add_account, delete_account, is_bot_online,
+    analytics_overview,
+)
 
 st.set_page_config(page_title="Аккаунты", page_icon="📱", layout="wide")
 
@@ -81,6 +84,50 @@ st.markdown("""
     background: #0f172a; border: 1px solid #1e293b;
     border-radius: 12px; padding: 14px 18px; margin-bottom: 16px;
 }
+
+/* ── Profile cards (grid) ─────────────────────────────────────── */
+.pcard {
+    background: linear-gradient(180deg,#0f172a 0%, #0b1224 100%);
+    border: 1px solid #1e293b;
+    border-radius: 16px;
+    padding: 16px;
+    height: 100%;
+    transition: border-color .2s, transform .15s;
+}
+.pcard:hover { border-color: #6366f1; transform: translateY(-2px); }
+.pcard-head { display:flex; align-items:center; gap:12px; margin-bottom:10px; }
+.pcard-avatar {
+    width:64px; height:64px; border-radius:50%;
+    border:2px solid #334155; object-fit:cover;
+    flex-shrink:0;
+}
+.pcard-title  { font-size:16px; font-weight:700; color:#e2e8f0; line-height:1.2; }
+.pcard-handle { font-size:12px; color:#94a3b8; margin-top:2px; }
+.pcard-platform {
+    display:inline-block; font-size:10px; font-weight:700;
+    border-radius:6px; padding:2px 7px; margin-top:4px;
+    text-transform:uppercase; letter-spacing:.4px;
+}
+.pcard-stats {
+    display:grid; grid-template-columns: repeat(3, 1fr);
+    gap:6px; margin:10px 0;
+    background:#0a1020; border-radius:10px; padding:10px 6px;
+}
+.pcard-stat-v { font-size:15px; font-weight:700; color:#e2e8f0; text-align:center; }
+.pcard-stat-l { font-size:10px; color:#64748b; text-align:center; text-transform:uppercase; letter-spacing:.4px; }
+.pcard-row { display:flex; justify-content:space-between; align-items:center;
+             font-size:12px; color:#94a3b8; padding:3px 0; }
+.pcard-row b { color:#cbd5e1; font-weight:600; }
+.pcard-foot { margin-top:10px; padding-top:10px; border-top:1px solid #1e293b;
+              display:flex; gap:6px; font-size:11px; flex-wrap:wrap; }
+.pcard-pill {
+    border-radius:8px; padding:3px 8px; font-weight:600;
+}
+.pill-ok   { background:#064e3b; color:#6ee7b7; }
+.pill-warn { background:#451a03; color:#fcd34d; }
+.pill-bad  { background:#450a0a; color:#fca5a5; }
+.pill-mut  { background:#1e293b; color:#94a3b8; }
+.pill-pend { background:#1e1b4b; color:#a5b4fc; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -235,6 +282,150 @@ def render_filters(accounts: list[dict]) -> list[dict]:
 
 def badge(text: str, css_class: str) -> str:
     return f'<span class="badge {css_class}">{text}</span>'
+
+
+# ── Статистика (последний снимок) для карточек ──────────────────────────────
+
+def load_account_stats_map() -> dict[int, dict]:
+    """Возвращает {account_id: {followers, posts_count, engagement_rate}}."""
+    try:
+        ov = analytics_overview() or {}
+    except Exception:
+        return {}
+    out = {}
+    for a in ov.get("accounts", []) or []:
+        out[a["account_id"]] = a
+    return out
+
+
+def _fmt_num(n: int) -> str:
+    n = int(n or 0)
+    if n >= 1_000_000:
+        return f"{n / 1_000_000:.1f}M".replace(".0M", "M")
+    if n >= 1_000:
+        return f"{n / 1_000:.1f}K".replace(".0K", "K")
+    return str(n)
+
+
+def _avatar_url(username: str, platform: str) -> str:
+    palette = {"tiktok": "ee1d52", "instagram": "c13584", "youtube": "ff0000"}
+    color = palette.get(platform, "6366f1")
+    return (
+        f"https://api.dicebear.com/7.x/initials/svg?"
+        f"seed={username}&backgroundColor={color}&textColor=ffffff&fontSize=42"
+    )
+
+
+# ── Card grid ───────────────────────────────────────────────────────────────
+
+def _platform_card_class(plat: str) -> str:
+    return {"tiktok": "plat-tiktok", "instagram": "plat-instagram",
+            "youtube": "plat-youtube"}.get(plat, "")
+
+
+def _status_pill(status: str) -> str:
+    pill = {
+        "active":   ("✅ Активен",      "pill-ok"),
+        "banned":   ("🚫 Забанен",       "pill-bad"),
+        "inactive": ("⏸ Неактивен",      "pill-mut"),
+        "pending":  ("⏳ Ожидает входа", "pill-pend"),
+        "warning":  ("⚠️ Внимание",      "pill-warn"),
+    }.get(status, ("❓ " + status, "pill-mut"))
+    return f'<span class="pcard-pill {pill[1]}">{pill[0]}</span>'
+
+
+def _session_pill(has_session: bool, status: str) -> str:
+    if status == "pending":
+        return '<span class="pcard-pill pill-pend">📱 Ждём QR</span>'
+    if has_session:
+        return '<span class="pcard-pill pill-ok">🔓 Авторизован</span>'
+    return '<span class="pcard-pill pill-bad">🔒 Нет сессии</span>'
+
+
+def render_account_card_grid(acc: dict, bot_online: bool, idx: int,
+                             stats_map: dict, mock_geo: bool = True):
+    import random
+    is_demo = acc.get("_demo", False)
+    plat    = acc["platform"]
+    plat_lb = PLATFORM_LABELS.get(plat, plat.capitalize())
+    auth_info = AUTH_LABELS.get(acc["auth_type"], ("❓", acc["auth_type"]))
+
+    s = stats_map.get(acc["id"]) if isinstance(acc["id"], int) else None
+    rng = random.Random(abs(hash(str(acc["id"]))) % (10**6))
+    followers = (s or {}).get("followers") or rng.randint(800, 250_000)
+    posts_n   = (s or {}).get("posts_count") or rng.randint(10, 600)
+    er        = (s or {}).get("engagement_rate") or round(rng.uniform(1.0, 8.0), 1)
+    likes_total = rng.randint(5_000, 1_500_000)
+    geo = rng.choice(["🇷🇺 Москва", "🇺🇦 Киев", "🇰🇿 Алматы", "🇧🇾 Минск", "🇺🇸 Нью-Йорк"])
+
+    plat_css = _platform_card_class(plat)
+    avatar = _avatar_url(acc["username"], plat)
+    demo_tag = ' · <span style="color:#6366f1;">DEMO</span>' if is_demo else ""
+
+    card_html = f"""
+<div class="pcard">
+  <div class="pcard-head">
+    <img class="pcard-avatar" src="{avatar}" alt="avatar"/>
+    <div style="flex:1;min-width:0;">
+      <div class="pcard-title">{acc['username']}</div>
+      <div class="pcard-handle">@{acc['username']} · ID {acc['id']}{demo_tag}</div>
+      <span class="pcard-platform {plat_css}">{PLATFORM_ICONS.get(plat,'')} {plat_lb}</span>
+    </div>
+  </div>
+  <div class="pcard-stats">
+    <div>
+      <div class="pcard-stat-v">{_fmt_num(followers)}</div>
+      <div class="pcard-stat-l">подписчики</div>
+    </div>
+    <div>
+      <div class="pcard-stat-v">{_fmt_num(likes_total)}</div>
+      <div class="pcard-stat-l">лайки</div>
+    </div>
+    <div>
+      <div class="pcard-stat-v">{posts_n}</div>
+      <div class="pcard-stat-l">посты</div>
+    </div>
+  </div>
+  <div class="pcard-row"><span>📍 Гео</span><b>{geo}</b></div>
+  <div class="pcard-row"><span>📊 ER</span><b>{er}%</b></div>
+  <div class="pcard-row"><span>{auth_info[0]} Вход</span><b>{auth_info[1]}</b></div>
+  <div class="pcard-foot">
+    {_status_pill(acc['status'])}
+    {_session_pill(acc['has_session'], acc['status'])}
+  </div>
+</div>
+"""
+    st.markdown(card_html, unsafe_allow_html=True)
+
+    bcol1, bcol2, bcol3 = st.columns(3)
+    acc_key = str(acc["id"])
+    confirm_key = f"confirm_del_{acc_key}_{idx}"
+
+    if st.session_state.get(confirm_key):
+        y, n = st.columns(2)
+        if y.button("✔ Удалить", key=f"yes_{acc_key}_{idx}", use_container_width=True,
+                    type="primary"):
+            if not is_demo and bot_online:
+                res = delete_account(acc["id"])
+                if res and res.get("success"):
+                    st.toast(f"@{acc['username']} удалён", icon="✅")
+            st.session_state[confirm_key] = False
+            st.rerun()
+        if n.button("✖ Отмена", key=f"no_{acc_key}_{idx}", use_container_width=True):
+            st.session_state[confirm_key] = False
+            st.rerun()
+    else:
+        if bcol1.button("📊 Открыть", key=f"open_{acc_key}_{idx}",
+                         use_container_width=True):
+            st.session_state["selected_account"] = acc
+            st.rerun()
+        if bcol2.button("🔄 Сессия", key=f"refresh_{acc_key}_{idx}",
+                         use_container_width=True, help="Переавторизация"):
+            st.toast(f"Запрос обновления @{acc['username']}", icon="🔄")
+        if bcol3.button("🗑", key=f"del_{acc_key}_{idx}",
+                         use_container_width=True, help="Удалить"):
+            st.session_state[confirm_key] = True
+            st.rerun()
 
 
 def render_account_card(acc: dict, bot_online: bool, idx: int):
@@ -728,7 +919,35 @@ if total_filtered < total_all:
 else:
     st.caption(f"Всего аккаунтов: {total_all}")
 
-st.markdown("""
+# ── Переключатель вида ────────────────────────────────────────────────────────
+view_col1, view_col2 = st.columns([4, 1])
+view_mode = view_col2.radio(
+    "Вид", ["🃏 Карточки", "📋 Список"], horizontal=True,
+    label_visibility="collapsed", key="acc_view_mode",
+)
+
+# ── Account cards ─────────────────────────────────────────────────────────────
+stats_map = load_account_stats_map() if bot_online else {}
+
+if not filtered:
+    if not display_accounts:
+        render_empty_state()
+    else:
+        st.info("🔍 Нет аккаунтов, соответствующих фильтрам")
+elif view_mode == "🃏 Карточки":
+    cols_per_row = 3
+    rows = [filtered[i:i + cols_per_row] for i in range(0, len(filtered), cols_per_row)]
+    for row in rows:
+        cols = st.columns(cols_per_row, gap="medium")
+        for col, acc in zip(cols, row):
+            with col:
+                try:
+                    idx = filtered.index(acc)
+                    render_account_card_grid(acc, bot_online, idx, stats_map)
+                except Exception as e:
+                    st.error(f"Ошибка рендера #{acc.get('id', '?')}: {e}")
+else:
+    st.markdown("""
 <div style="display:flex;gap:24px;margin-bottom:8px;padding:8px 4px;font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">
   <span style="flex:3;">Аккаунт</span>
   <span style="flex:1.8;">Авторизация</span>
@@ -737,14 +956,6 @@ st.markdown("""
   <span style="flex:2;">Действия</span>
 </div>
 """, unsafe_allow_html=True)
-
-# ── Account cards ─────────────────────────────────────────────────────────────
-if not filtered:
-    if not display_accounts:
-        render_empty_state()
-    else:
-        st.info("🔍 Нет аккаунтов, соответствующих фильтрам")
-else:
     for idx, acc in enumerate(filtered):
         try:
             render_account_card(acc, bot_online, idx)
