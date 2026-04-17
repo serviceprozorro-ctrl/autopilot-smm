@@ -1,16 +1,12 @@
 """Продакшн-пайплайн для коротких видео.
 
 Этапы:
-  1) Идея → сценарий (Claude)
-  2) Сценарий → раскадровка (список сцен с описаниями)
-  3) Раскадровка → картинки (генератор через subprocess к JS-сэндбоксу не нужен —
-     используем прямой HTTP к media-генератору. Здесь fallback: цветные плейсхолдеры
-     с текстом, если генератор недоступен)
-  4) Текст → озвучка (OpenAI TTS через прокси)
+  1) Идея → сценарий (Claude) с длительностями каждой сцены (6/10/20/30 с)
+  2) Сценарий → раскадровка
+  3) Раскадровка → картинки (Grok / xAI; fallback — плейсхолдеры)
+  4) Текст → озвучка (OpenAI TTS)
   5) Whisper → субтитры с тайм-кодами
-  6) ffmpeg → склейка картинок + аудио + хардсаб
-
-Каждая стадия возвращает данные для следующей; вызываем по отдельности из UI.
+  6) ffmpeg → склейка с разной длительностью на сцену + аудио + хардсаб
 """
 import json
 import logging
@@ -19,16 +15,20 @@ import subprocess
 import tempfile
 import textwrap
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
 from anthropic import Anthropic
 from openai import OpenAI
 from PIL import Image, ImageDraw, ImageFont
 
+from utils import xai_client
+
 logger = logging.getLogger(__name__)
 
 PRODUCTION_DIR = Path(__file__).resolve().parents[1] / "production_output"
 PRODUCTION_DIR.mkdir(exist_ok=True)
+
+ALLOWED_SCENE_DURATIONS = [6, 10, 20, 30]
 
 
 def _anthropic() -> Anthropic:
@@ -45,47 +45,90 @@ def _openai() -> OpenAI:
     )
 
 
+# ── Разбиение длительности видео на сцены 6/10/20/30 ─────────────────────────
+
+def split_duration_into_scenes(total_sec: int) -> List[int]:
+    """Разбивает общую длительность на сегменты из ALLOWED_SCENE_DURATIONS.
+
+    Алгоритм: жадно берём максимально возможный сегмент, остатком < 6 склеиваем
+    с предыдущей сценой, чтобы не было слишком коротких фрагментов.
+    """
+    total_sec = max(6, int(total_sec))
+    chunks: List[int] = []
+    remaining = total_sec
+    while remaining >= 6:
+        candidates = [d for d in ALLOWED_SCENE_DURATIONS if d <= remaining]
+        chunks.append(max(candidates))
+        remaining -= chunks[-1]
+    if remaining > 0 and chunks:
+        chunks[-1] += remaining
+    return chunks
+
+
 # ── 1. Сценарий ──────────────────────────────────────────────────────────────
 
 def generate_script(idea: str, duration_sec: int = 30, style: str = "энергичный",
-                    platform: str = "tiktok") -> dict:
-    """Возвращает {title, hook, scenes:[{narration, visual}], cta, hashtags}."""
+                    platform: str = "tiktok",
+                    portfolio_description: Optional[str] = None) -> dict:
+    """Возвращает {title, hook, scenes:[{narration, visual, duration_sec}], cta, hashtags}."""
     client = _anthropic()
+    scene_plan = split_duration_into_scenes(duration_sec)
+    scenes_hint = ", ".join(str(s) for s in scene_plan)
+
+    portfolio_block = ""
+    if portfolio_description:
+        portfolio_block = (
+            f"\nГерой кадра / визуальный образ: {portfolio_description}\n"
+            "Используй этот образ в каждом visual-описании сцены.\n"
+        )
+
     prompt = f"""Создай сценарий для короткого видео на {platform.upper()}.
 
 Идея: {idea}
-Длительность: {duration_sec} секунд
+Общая длительность: {duration_sec} секунд
+Раскадровка по сценам (секунды): {scenes_hint}
 Стиль: {style}
-Язык: русский
-
-Верни СТРОГО JSON со схемой:
+Язык озвучки: русский
+{portfolio_block}
+Верни СТРОГО JSON:
 {{
-  "title": "название видео",
+  "title": "название",
   "hook": "цепляющая первая фраза (5-7 слов)",
   "scenes": [
-    {{"narration": "текст озвучки сцены", "visual": "детальное описание картинки сцены на английском для AI-генератора"}}
+    {{"narration": "текст озвучки на русском (плотность речи под длительность)",
+      "visual": "детальное описание кадра на английском для AI-генератора",
+      "duration_sec": <число из плана>}}
   ],
-  "cta": "призыв к действию в конце",
-  "hashtags": "#тег1 #тег2 #тег3"
+  "cta": "призыв к действию",
+  "hashtags": "#тег1 #тег2"
 }}
 
-Сцен должно быть {max(3, duration_sec // 6)}–{max(4, duration_sec // 4)} штук, чтобы каждая длилась 4-7 секунд.
-Озвучка коротких фраз — 8-15 слов на сцену. Только JSON, без markdown.
+Сцен ровно {len(scene_plan)} штук — для длинных сцен (20-30 с) делай больше речи и
+несколько действий внутри одного кадра. Только JSON, без markdown.
 """
     resp = client.messages.create(
-        model="claude-sonnet-4-6", max_tokens=2048,
+        model="claude-sonnet-4-6", max_tokens=3000,
         messages=[{"role": "user", "content": prompt}],
     )
     text = resp.content[0].text.strip()
     if text.startswith("```"):
         text = text.split("```")[1].lstrip("json").strip()
-    return json.loads(text)
+    data = json.loads(text)
+
+    # Нормализуем длительности — на случай галлюцинаций модели
+    scenes = data.get("scenes") or []
+    for i, sc in enumerate(scenes):
+        if i < len(scene_plan):
+            sc["duration_sec"] = scene_plan[i]
+        else:
+            sc["duration_sec"] = sc.get("duration_sec") or 6
+    data["scenes"] = scenes
+    return data
 
 
 # ── 2. Картинки сцен ────────────────────────────────────────────────────────
 
 def _placeholder_image(text: str, output: Path, idx: int):
-    """Если генератор недоступен — рисуем цветной плейсхолдер с подписью."""
     colors = [(124, 58, 237), (37, 99, 235), (5, 150, 105), (220, 38, 38),
               (245, 158, 11), (236, 72, 153), (14, 165, 233)]
     bg = colors[idx % len(colors)]
@@ -98,19 +141,29 @@ def _placeholder_image(text: str, output: Path, idx: int):
         font = ImageFont.load_default()
     wrapped = textwrap.fill(text[:200], width=18)
     draw.multiline_text((60, 600), wrapped, fill=(255, 255, 255), font=font, spacing=12)
-    draw.text((60, 1800), f"Сцена {idx + 1}", fill=(255, 255, 255, 200), font=font)
+    draw.text((60, 1800), f"Сцена {idx + 1}", fill=(255, 255, 255), font=font)
     img.save(output)
 
 
-def generate_scene_images(scenes: list[dict], session_dir: Path) -> list[Path]:
-    """Пытаемся сгенерировать через media-generation; иначе плейсхолдеры."""
+def generate_scene_images(scenes: list[dict], session_dir: Path,
+                          use_grok: bool = True) -> list[Path]:
+    """Картинки сцен через xAI Grok; fallback — плейсхолдеры."""
     out_paths = []
+    grok_ok = use_grok and xai_client.is_available()
     for i, sc in enumerate(scenes):
         out = session_dir / f"scene_{i:02d}.png"
-        # Пока без AI-генератора (требует JS-сэндбокс из агента) — плейсхолдер.
-        # Пользователь может позже заменить картинки руками или включить
-        # реальный генератор картинок в этой функции.
-        _placeholder_image(sc.get("visual") or sc.get("narration", ""), out, i)
+        visual = sc.get("visual") or sc.get("narration", "")
+        if grok_ok:
+            try:
+                xai_client.generate_image(
+                    f"{visual}. Vertical 9:16 composition, cinematic, ultra-detailed.",
+                    out, n=1,
+                )
+                out_paths.append(out)
+                continue
+            except Exception as e:
+                logger.warning("Grok-image сбой на сцене %s: %s — плейсхолдер", i, e)
+        _placeholder_image(visual, out, i)
         out_paths.append(out)
     return out_paths
 
@@ -118,13 +171,9 @@ def generate_scene_images(scenes: list[dict], session_dir: Path) -> list[Path]:
 # ── 3. Озвучка ──────────────────────────────────────────────────────────────
 
 def synthesize_voiceover(text: str, output: Path, voice: str = "alloy") -> Path:
-    """OpenAI TTS — выбираем голос и генерим mp3."""
     client = _openai()
     resp = client.audio.speech.create(
-        model="gpt-4o-mini-tts",
-        voice=voice,
-        input=text,
-        response_format="mp3",
+        model="gpt-4o-mini-tts", voice=voice, input=text, response_format="mp3",
     )
     output.write_bytes(resp.read())
     return output
@@ -133,22 +182,17 @@ def synthesize_voiceover(text: str, output: Path, voice: str = "alloy") -> Path:
 # ── 4. Субтитры ─────────────────────────────────────────────────────────────
 
 def transcribe_to_srt(audio_path: Path, srt_path: Path) -> Path:
-    """Whisper выдаёт сегменты с тайм-кодами — собираем SRT."""
     client = _openai()
     with open(audio_path, "rb") as f:
         resp = client.audio.transcriptions.create(
-            model="whisper-1",
-            file=f,
-            response_format="verbose_json",
-            language="ru",
+            model="whisper-1", file=f, response_format="verbose_json", language="ru",
         )
     segments = resp.segments or []
     lines = []
     for i, seg in enumerate(segments, 1):
-        start = _fmt_srt_time(seg.start)
-        end = _fmt_srt_time(seg.end)
-        text = seg.text.strip()
-        lines.append(f"{i}\n{start} --> {end}\n{text}\n")
+        lines.append(
+            f"{i}\n{_fmt_srt_time(seg.start)} --> {_fmt_srt_time(seg.end)}\n{seg.text.strip()}\n"
+        )
     srt_path.write_text("\n".join(lines), encoding="utf-8")
     return srt_path
 
@@ -161,23 +205,27 @@ def _fmt_srt_time(seconds: float) -> str:
     return f"{h:02d}:{m:02d}:{s:02d},{ms:03d}"
 
 
-# ── 5. Сборка видео через ffmpeg ────────────────────────────────────────────
+# ── 5. Сборка ───────────────────────────────────────────────────────────────
 
 def assemble_video(images: list[Path], audio: Path, srt: Optional[Path],
-                   output: Path, total_duration: float) -> Path:
-    """Каждая картинка показывается равную долю общей длительности.
-    Накладываем аудио и субтитры (хардсаб)."""
+                   output: Path,
+                   scene_durations: Optional[list[int]] = None,
+                   total_duration: Optional[float] = None) -> Path:
+    """Каждая сцена — со своей длительностью (или равные доли total_duration)."""
     n = len(images)
-    per_img = max(1.0, total_duration / n)
+    if scene_durations and len(scene_durations) == n:
+        durations = [max(1.0, float(d)) for d in scene_durations]
+    else:
+        per = max(1.0, (total_duration or 30.0) / n)
+        durations = [per] * n
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
-        for img in images:
+        for img, dur in zip(images, durations):
             f.write(f"file '{img}'\n")
-            f.write(f"duration {per_img}\n")
-        f.write(f"file '{images[-1]}'\n")  # последняя картинка повторяется (concat quirk)
+            f.write(f"duration {dur}\n")
+        f.write(f"file '{images[-1]}'\n")
         concat_list = f.name
 
-    # 1) Видеотрек из картинок
     tmp_video = output.with_suffix(".tmp.mp4")
     cmd_video = [
         "ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", concat_list,
@@ -189,10 +237,8 @@ def assemble_video(images: list[Path], audio: Path, srt: Optional[Path],
     _run(cmd_video)
     os.unlink(concat_list)
 
-    # 2) Накладываем аудио + (опционально) субтитры
     out_filter = []
     if srt and srt.exists():
-        # Экранируем путь для filtergraph
         srt_escaped = str(srt).replace(":", "\\:").replace("'", "\\'")
         out_filter = [
             "-vf",

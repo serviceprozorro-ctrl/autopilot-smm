@@ -9,7 +9,8 @@ from pathlib import Path
 import streamlit as st
 
 from utils import video_producer as vp
-from utils.api_client import upload_media
+from utils import xai_client
+from utils.api_client import upload_media, list_portfolio
 
 st.set_page_config(page_title="Продакшн", page_icon="🎬", layout="wide")
 st.title("🎬 Продакшн — Создание видео под ключ")
@@ -53,17 +54,38 @@ with st.form("script_form"):
     duration = c2.number_input("Длительность, сек", 10, 120, 30, step=5)
     platform = c3.selectbox("Платформа", ["tiktok", "instagram", "youtube"])
 
-    c4, c5 = st.columns([2, 1])
+    c4, c5, c6 = st.columns([2, 2, 1])
     style = c4.selectbox("Стиль подачи",
                          ["энергичный", "спокойный", "обучающий", "юмористический",
                           "вдохновляющий", "продающий"])
-    submit = c5.form_submit_button("✨ Сгенерировать сценарий", type="primary",
+
+    portfolio_items = list_portfolio() or []
+    portfolio_options = ["— без образа —"] + [
+        f"#{p['id']} {p['title']}" for p in portfolio_items if isinstance(p, dict)
+    ]
+    portfolio_choice = c5.selectbox(
+        "Образ героя из портфолио", portfolio_options,
+        help="Образ из «🎨 Визуальный образ» подмешивается во все кадры",
+    )
+    submit = c6.form_submit_button("✨ Сценарий", type="primary",
                                     use_container_width=True)
 
+    plan = vp.split_duration_into_scenes(duration)
+    st.caption(f"📐 Раскадровка: {len(plan)} сцен(ы) — длительности: "
+               + " + ".join(f"{p}с" for p in plan))
+
 if submit and idea:
+    portfolio_desc = None
+    if portfolio_choice != "— без образа —":
+        idx = portfolio_options.index(portfolio_choice) - 1
+        chosen = portfolio_items[idx]
+        portfolio_desc = chosen.get("description") or chosen.get("title")
     with st.spinner("Claude пишет сценарий…"):
         try:
-            ss.prod_script = vp.generate_script(idea, duration, style, platform)
+            ss.prod_script = vp.generate_script(
+                idea, duration, style, platform,
+                portfolio_description=portfolio_desc,
+            )
             session_id = str(int(time.time()))
             ss.prod_session_dir = vp.PRODUCTION_DIR / session_id
             ss.prod_session_dir.mkdir(exist_ok=True)
@@ -100,11 +122,18 @@ if ss.prod_script:
                 st.error(f"Ошибка: {e}")
 
     if ss.prod_images:
-        st.info("ℹ️ Базовые плейсхолдеры. Можешь заменить любую картинку вручную ниже.")
+        if xai_client.is_available():
+            st.success("🎨 Картинки сгенерированы Grok (xAI). Можно заменить вручную.")
+        else:
+            st.warning("⚠️ XAI_API_KEY не задан — нарисованы плейсхолдеры. "
+                       "Добавь ключ, чтобы получить настоящие AI-кадры.")
         cols = st.columns(min(4, len(ss.prod_images)))
+        scenes = ss.prod_script.get("scenes", [])
         for i, img_path in enumerate(ss.prod_images):
             with cols[i % len(cols)]:
-                st.image(str(img_path), caption=f"Сцена {i+1}", use_container_width=True)
+                dur = scenes[i].get("duration_sec", "—") if i < len(scenes) else "—"
+                st.image(str(img_path), caption=f"Сцена {i+1} · {dur}с",
+                         use_container_width=True)
                 replace = st.file_uploader(f"Заменить #{i+1}", type=["png", "jpg", "jpeg"],
                                            key=f"replace_{i}", label_visibility="collapsed")
                 if replace:
@@ -169,16 +198,22 @@ if ss.prod_audio and ss.prod_images:
     if st.button("🎞 Собрать MP4", type="primary", disabled=bool(ss.prod_video)):
         with st.spinner("ffmpeg монтирует видео…"):
             try:
-                duration = vp.get_audio_duration(Path(ss.prod_audio))
+                audio_dur = vp.get_audio_duration(Path(ss.prod_audio))
                 video_path = ss.prod_session_dir / "final.mp4"
+                scene_durations = [
+                    int(s.get("duration_sec", 6))
+                    for s in ss.prod_script.get("scenes", [])
+                ]
                 ss.prod_video = vp.assemble_video(
                     images=ss.prod_images,
                     audio=Path(ss.prod_audio),
                     srt=Path(ss.prod_srt) if burn_subs and ss.prod_srt else None,
                     output=video_path,
-                    total_duration=duration,
+                    scene_durations=scene_durations,
+                    total_duration=audio_dur,
                 )
-                st.success(f"Видео готово ({duration:.1f} сек)")
+                planned = sum(scene_durations) if scene_durations else audio_dur
+                st.success(f"Видео готово (видео {planned}с, аудио {audio_dur:.1f}с)")
             except Exception as e:
                 st.error(f"Ошибка сборки: {e}")
 

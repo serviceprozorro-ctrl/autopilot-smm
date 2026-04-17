@@ -35,6 +35,8 @@ with st.sidebar:
     st.page_link("pages/1b_📅_Контент_план.py", label="📅 Контент-план")
     st.page_link("pages/1c_🤖_АИ_Помощник.py", label="🤖 АИ-помощник")
     st.page_link("pages/1d_🎬_Продакшн.py", label="🎬 Продакшн")
+    st.page_link("pages/1e_🎨_Визуальный_образ.py", label="🎨 Визуальный образ")
+    st.page_link("pages/1f_📊_Аналитика.py", label="📊 Аналитика")
     st.page_link("pages/2_🖼_Удаление_фона.py", label="🖼 Удаление фона")
     st.page_link("pages/3_🧾_QR_код.py", label="🧾 QR-код")
     st.page_link("pages/4_💻_Тестовые_данные.py", label="💻 Тестовые данные")

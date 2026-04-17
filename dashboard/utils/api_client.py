@@ -117,6 +117,65 @@ def upload_media(file_bytes: bytes, filename: str) -> Any:
         return {"error": str(e)}
 
 
+# ── Портфолио ───────────────────────────────────────────────────────────────
+
+def list_portfolio(account_id: int = None) -> Any:
+    qs = f"?account_id={account_id}" if account_id else ""
+    return _get(f"/portfolio/list{qs}")
+
+
+def upload_portfolio(file_bytes: bytes, filename: str, title: str = "Образ",
+                     account_id: int = None, description: str = "",
+                     style_tags: str = "") -> Any:
+    try:
+        files = {"file": (filename, file_bytes)}
+        data = {"title": title, "description": description, "style_tags": style_tags}
+        if account_id:
+            data["account_id"] = str(account_id)
+        r = requests.post(f"{BOT_API_BASE}/portfolio/upload", files=files,
+                          data=data, timeout=60)
+        r.raise_for_status()
+        return r.json()
+    except requests.exceptions.ConnectionError:
+        return None
+    except Exception as e:
+        return {"error": str(e)}
+
+
+def create_portfolio_item(image_path: str, title: str, account_id: int = None,
+                          source: str = "grok", description: str = "",
+                          style_tags: list = None, parent_id: int = None) -> Any:
+    return _post("/portfolio/create", {
+        "image_path": image_path, "title": title, "account_id": account_id,
+        "source": source, "description": description,
+        "style_tags": style_tags or [], "parent_id": parent_id,
+    })
+
+
+def delete_portfolio(item_id: int) -> Any:
+    return _delete(f"/portfolio/{item_id}")
+
+
+# ── Аналитика ───────────────────────────────────────────────────────────────
+
+def analytics_overview() -> Any:
+    return _get("/analytics/overview")
+
+
+def analytics_account(account_id: int) -> Any:
+    return _get(f"/analytics/account/{account_id}")
+
+
+def create_analytics_snapshot(account_id: int, followers: int = 0, following: int = 0,
+                              posts_count: int = 0, likes_total: int = 0,
+                              avg_views: int = 0, engagement_rate: float = 0.0) -> Any:
+    return _post("/analytics/snapshot", {
+        "account_id": account_id, "followers": followers, "following": following,
+        "posts_count": posts_count, "likes_total": likes_total,
+        "avg_views": avg_views, "engagement_rate": engagement_rate,
+    })
+
+
 def is_bot_online() -> bool:
     try:
         r = requests.get("http://localhost:3000/", timeout=3)
