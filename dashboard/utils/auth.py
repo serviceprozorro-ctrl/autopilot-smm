@@ -109,36 +109,213 @@ def _has_streamlit_oidc() -> bool:
         return False
 
 
+def _founder_image_b64() -> str:
+    import base64, pathlib
+    p = pathlib.Path(__file__).parent.parent / "static" / "founder.jpg"
+    if not p.exists():
+        return ""
+    return base64.b64encode(p.read_bytes()).decode()
+
+
 def render_login_page():
     """Рендерит страницу входа/регистрации. Останавливает выполнение страницы."""
-    st.markdown("""
+    img_b64 = _founder_image_b64()
+    img_src = f"data:image/jpeg;base64,{img_b64}" if img_b64 else ""
+
+    st.markdown(f"""
     <style>
-    [data-testid="stSidebar"] { display: none; }
-    .auth-card {
-        max-width: 460px; margin: 40px auto;
-        background: #0f172a; border: 1px solid #1e293b;
-        border-radius: 18px; padding: 36px 32px;
-        box-shadow: 0 12px 40px rgba(0,0,0,.4);
-    }
-    .auth-logo { text-align:center; font-size:48px; margin-bottom:8px; }
-    .auth-title { text-align:center; font-size:24px; font-weight:800;
-                  color:#e2e8f0; margin-bottom:6px; }
-    .auth-sub { text-align:center; color:#94a3b8; font-size:14px;
-                margin-bottom:24px; }
-    .auth-divider { display:flex; align-items:center; gap:10px;
-                    color:#475569; font-size:12px; margin:18px 0; }
-    .auth-divider::before, .auth-divider::after {
-        content:""; flex:1; height:1px; background:#1e293b;
-    }
+    [data-testid="stSidebar"] {{ display: none; }}
+    [data-testid="stHeader"] {{ background: transparent; }}
+    .stApp {{
+        background: radial-gradient(ellipse at top left,
+                    #1e1b4b 0%, #0f0f23 35%, #000 100%);
+        overflow-x: hidden;
+    }}
+    /* Анимированные частицы фона */
+    .stApp::before {{
+        content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+        background-image:
+          radial-gradient(circle at 20% 30%, rgba(139,92,246,.25), transparent 40%),
+          radial-gradient(circle at 80% 70%, rgba(99,102,241,.22), transparent 40%),
+          radial-gradient(circle at 50% 50%, rgba(236,72,153,.12), transparent 50%);
+        animation: aurora 18s ease-in-out infinite alternate;
+    }}
+    @keyframes aurora {{
+        0%   {{ transform: translate(0,0) scale(1); opacity:.85; }}
+        50%  {{ transform: translate(-30px,20px) scale(1.06); opacity:1; }}
+        100% {{ transform: translate(20px,-15px) scale(.98); opacity:.9; }}
+    }}
+    /* Звёздочки */
+    .stars {{
+        position:fixed; inset:0; pointer-events:none; z-index:0;
+        background-image:
+          radial-gradient(2px 2px at 20% 30%, #fff, transparent),
+          radial-gradient(1px 1px at 60% 70%, #c7d2fe, transparent),
+          radial-gradient(1.5px 1.5px at 80% 20%, #fff, transparent),
+          radial-gradient(1px 1px at 30% 80%, #fbcfe8, transparent),
+          radial-gradient(2px 2px at 90% 50%, #fff, transparent),
+          radial-gradient(1px 1px at 10% 60%, #ddd6fe, transparent),
+          radial-gradient(1.5px 1.5px at 50% 10%, #fff, transparent),
+          radial-gradient(1px 1px at 70% 40%, #c4b5fd, transparent);
+        background-size: 600px 600px;
+        animation: twinkle 6s ease-in-out infinite alternate;
+    }}
+    @keyframes twinkle {{
+        0% {{ opacity:.4; }} 100% {{ opacity:1; }}
+    }}
+    .main .block-container {{ position:relative; z-index:1; padding-top: 1rem; }}
+
+    /* Левая колонка — фото + приветствие */
+    .hero-wrap {{
+        display:flex; flex-direction:column; align-items:center;
+        justify-content:center; padding: 20px 10px;
+        animation: fadeInLeft .9s cubic-bezier(.2,.8,.2,1) both;
+    }}
+    @keyframes fadeInLeft {{
+        from {{ opacity:0; transform: translateX(-40px); }}
+        to   {{ opacity:1; transform: translateX(0); }}
+    }}
+    .hero-photo {{
+        width: 320px; max-width: 90%;
+        border-radius: 24px; overflow:hidden;
+        box-shadow: 0 30px 80px rgba(139,92,246,.35),
+                    0 0 0 2px rgba(139,92,246,.4) inset;
+        position:relative;
+        animation: floaty 5s ease-in-out infinite alternate;
+    }}
+    .hero-photo::after {{
+        content:""; position:absolute; inset:-3px; border-radius:24px;
+        background: linear-gradient(135deg,#8b5cf6,#ec4899,#06b6d4,#8b5cf6);
+        background-size: 300% 300%;
+        z-index:-1; filter: blur(14px); opacity:.7;
+        animation: gradient-flow 6s linear infinite;
+    }}
+    @keyframes gradient-flow {{
+        0% {{ background-position: 0% 50%; }}
+        100% {{ background-position: 300% 50%; }}
+    }}
+    @keyframes floaty {{
+        from {{ transform: translateY(0); }}
+        to   {{ transform: translateY(-10px); }}
+    }}
+    .hero-photo img {{ display:block; width:100%; height:auto; }}
+    .hero-greet {{
+        margin-top: 28px; text-align:center;
+    }}
+    .hero-greet .hi {{
+        font-size: 14px; letter-spacing: 4px; color:#a78bfa;
+        text-transform: uppercase; font-weight: 600;
+    }}
+    .hero-greet .name {{
+        font-size: 38px; font-weight: 900; margin: 6px 0 4px 0;
+        background: linear-gradient(135deg,#fff 0%,#c4b5fd 50%,#f9a8d4 100%);
+        -webkit-background-clip: text; background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }}
+    .hero-greet .role {{
+        color:#94a3b8; font-size: 15px; margin-bottom: 18px;
+    }}
+    .hero-greet .invite {{
+        font-size: 18px; color:#e2e8f0; line-height: 1.5;
+        max-width: 360px; margin: 0 auto;
+    }}
+    .hero-greet .invite b {{
+        background: linear-gradient(90deg,#8b5cf6,#ec4899);
+        -webkit-background-clip: text; background-clip: text;
+        -webkit-text-fill-color: transparent; font-weight: 800;
+    }}
+    .typing-dot {{
+        display:inline-block; width:6px; height:6px; border-radius:50%;
+        background:#a78bfa; margin: 0 2px;
+        animation: typing 1.4s infinite ease-in-out;
+    }}
+    .typing-dot:nth-child(2) {{ animation-delay: .2s; }}
+    .typing-dot:nth-child(3) {{ animation-delay: .4s; }}
+    @keyframes typing {{
+        0%,60%,100% {{ transform: translateY(0); opacity:.4; }}
+        30% {{ transform: translateY(-6px); opacity:1; }}
+    }}
+
+    /* Правая колонка — карточка авторизации */
+    .auth-card {{
+        background: rgba(15, 23, 42, .85);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(139,92,246,.3);
+        border-radius: 22px; padding: 36px 32px;
+        box-shadow: 0 20px 60px rgba(0,0,0,.5),
+                    0 0 0 1px rgba(255,255,255,.04) inset;
+        animation: fadeInRight .9s cubic-bezier(.2,.8,.2,1) both;
+        animation-delay: .15s;
+    }}
+    @keyframes fadeInRight {{
+        from {{ opacity:0; transform: translateX(40px); }}
+        to   {{ opacity:1; transform: translateX(0); }}
+    }}
+    .auth-logo {{ text-align:center; font-size:42px; margin-bottom:6px;
+                 filter: drop-shadow(0 0 20px rgba(139,92,246,.6)); }}
+    .auth-title {{ text-align:center; font-size:26px; font-weight:900;
+                  background: linear-gradient(135deg,#fff,#c4b5fd);
+                  -webkit-background-clip:text; background-clip:text;
+                  -webkit-text-fill-color: transparent;
+                  margin-bottom:4px; }}
+    .auth-sub {{ text-align:center; color:#94a3b8; font-size:13px;
+                margin-bottom:22px; }}
+    .auth-divider {{ display:flex; align-items:center; gap:10px;
+                    color:#475569; font-size:11px; margin:16px 0;
+                    letter-spacing: 2px; font-weight: 600; }}
+    .auth-divider::before, .auth-divider::after {{
+        content:""; flex:1; height:1px;
+        background: linear-gradient(90deg, transparent, #334155, transparent);
+    }}
+    .stTabs [data-baseweb="tab-list"] {{ gap: 4px; }}
+    .stTextInput input, .stTextInput input:focus {{
+        background: rgba(30,41,59,.6) !important;
+        border: 1px solid rgba(139,92,246,.25) !important;
+        color: #e2e8f0 !important;
+    }}
+    .stButton > button[kind="primary"] {{
+        background: linear-gradient(135deg,#8b5cf6 0%,#ec4899 100%) !important;
+        border: none !important;
+        font-weight: 700 !important;
+        box-shadow: 0 8px 24px rgba(139,92,246,.4) !important;
+        transition: transform .15s, box-shadow .15s !important;
+    }}
+    .stButton > button[kind="primary"]:hover {{
+        transform: translateY(-2px) !important;
+        box-shadow: 0 12px 32px rgba(236,72,153,.5) !important;
+    }}
     </style>
+    <div class="stars"></div>
     """, unsafe_allow_html=True)
 
-    _, mid, _ = st.columns([1, 2, 1])
-    with mid:
+    left, right = st.columns([1, 1], gap="large")
+
+    with left:
+        if img_src:
+            st.markdown(f"""
+            <div class="hero-wrap">
+                <div class="hero-photo"><img src="{img_src}" alt="Founder"/></div>
+                <div class="hero-greet">
+                    <div class="hi">Welcome aboard</div>
+                    <div class="name">Привет, друг</div>
+                    <div class="role">основатель AutoPilot · AI-инженер</div>
+                    <div class="invite">
+                        Заходи в <b>мир AI-автоматизации</b> — где соцсети
+                        ведут себя сами, контент пишется за секунды,
+                        а ты управляешь всем одной кнопкой
+                        <span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>
+                    </div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+    with right:
         st.markdown('<div class="auth-card">', unsafe_allow_html=True)
         st.markdown('<div class="auth-logo">🚀</div>', unsafe_allow_html=True)
-        st.markdown('<div class="auth-title">AutoPilot</div>', unsafe_allow_html=True)
-        st.markdown('<div class="auth-sub">Платформа управления SMM</div>',
+        st.markdown('<div class="auth-title">AutoPilot</div>',
+                    unsafe_allow_html=True)
+        st.markdown('<div class="auth-sub">Войди и стань на автопилот</div>',
                     unsafe_allow_html=True)
 
         # ── Google ─────────────────────────────────────────────────────────
