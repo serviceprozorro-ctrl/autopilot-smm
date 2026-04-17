@@ -18,6 +18,32 @@ st.set_page_config(
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
+    st.markdown("""
+    <style>
+    /* Главная кнопка АИ-помощника */
+    div[data-testid="stSidebar"] a[href*="01_"] {
+        display:block;
+        background: linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%);
+        color:#fff !important;
+        padding:14px 18px;
+        border-radius:14px;
+        font-size:16px !important;
+        font-weight:700 !important;
+        text-align:center;
+        margin: 4px 0 12px 0;
+        box-shadow: 0 4px 14px rgba(99,102,241,.35);
+        text-decoration:none !important;
+        transition: transform .15s, box-shadow .15s;
+    }
+    div[data-testid="stSidebar"] a[href*="01_"]:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(99,102,241,.5);
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    st.page_link("pages/01_🤖_АИ_Помощник.py", label="🤖 АИ-помощник")
+
     st.markdown("## 🚀 AutoPilot")
     st.markdown("**Панель управления SMM**")
     st.divider()
@@ -31,7 +57,6 @@ with st.sidebar:
     st.page_link("pages/0_⚙️_Настройки.py", label="⚙️ Настройки бота")
     st.divider()
     st.markdown("### 🛠 Инструменты")
-    st.page_link("pages/01_🤖_АИ_Помощник.py", label="🤖 АИ-помощник")
     st.page_link("pages/1_📱_Аккаунты.py", label="📱 Аккаунты")
     st.page_link("pages/1f_📊_Аналитика.py", label="📊 Аналитика")
     st.page_link("pages/2_🖼_Удаление_фона.py", label="🖼 Удаление фона")
