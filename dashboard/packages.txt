@@ -1,0 +1,6 @@
+freetype
+libjpeg-turbo8
+libpng16-16
+zlib1g
+libwebp7
+libtiff6
