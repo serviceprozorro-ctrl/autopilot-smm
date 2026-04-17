@@ -64,6 +64,27 @@ class BaseExecutor:
 class TikTokExecutor(BaseExecutor):
     platform = "tiktok"
 
+    async def publish(self, req: PublishRequest) -> PublishResult:
+        """TikTok — реальная публикация через Playwright + Chromium."""
+        try:
+            from core.posting.tiktok_publisher import publish_to_tiktok
+            res = await publish_to_tiktok(
+                account_id=req.account_id,
+                username=req.username,
+                cookies_raw=req.session_data,
+                media_path=req.media_path,
+                caption=req.caption,
+                hashtags=req.hashtags,
+            )
+            return PublishResult(
+                success=res.get("success", False),
+                external_id=res.get("external_id"),
+                error=res.get("error"),
+            )
+        except Exception as e:
+            logger.exception("[TikTok] Критическая ошибка")
+            return PublishResult(success=False, error=f"Критическая ошибка: {e}")
+
 
 class InstagramExecutor(BaseExecutor):
     platform = "instagram"

@@ -1,5 +1,12 @@
 # Workspace
 
+## Recent changes (Apr 17, 2026)
+- Подключён реальный TikTok-публикатор через Playwright + Nix-Chromium (`social_media_bot/core/posting/tiktok_publisher.py`).
+- Cookies нормализуются из 3 форматов (Cookie Editor JSON, JSON dict, Cookie header).
+- Все страницы дашборда переименованы на русский (`pages/0_⚙️_Настройки.py`, `pages/1_📱_Аккаунты.py`, и т.д.).
+- В контент-плане добавлена справка по cookies TikTok и переведены фильтры статуса/платформы.
+- Системные пакеты `chromium` (Nix) установлены для Playwright (`shutil.which('chromium')`).
+
 ## Overview
 
 pnpm workspace monorepo using TypeScript for Node.js artifacts, plus a standalone Python 3.11 backend with Telegram bot.

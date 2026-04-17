@@ -28,20 +28,21 @@ with st.sidebar:
         st.error("🤖 Telegram Bot: Офлайн")
     st.caption(f"🕐 {datetime.now().strftime('%d.%m.%Y %H:%M')}")
     st.divider()
-    st.page_link("pages/0_⚙️_Settings.py", label="⚙️ Настройки бота")
+    st.page_link("pages/0_⚙️_Настройки.py", label="⚙️ Настройки бота")
     st.divider()
     st.markdown("### 🛠 Инструменты")
-    st.page_link("pages/1_📱_Accounts.py", label="📱 Аккаунты")
-    st.page_link("pages/2_🖼_Background_Remover.py", label="🖼 Убрать фон")
-    st.page_link("pages/3_🧾_QR_Generator.py", label="🧾 QR-код")
-    st.page_link("pages/4_💻_Fake_Data.py", label="💻 Fake Data")
-    st.page_link("pages/5_📥_Media_Downloader.py", label="📥 Media Downloader")
-    st.page_link("pages/6_📊_Resource_Monitor.py", label="📊 Мониторинг")
-    st.page_link("pages/7_🔍_Code_Analyzer.py", label="🔍 Анализ кода")
-    st.page_link("pages/8_🔗_Link_Checker.py", label="🔗 Link Checker")
-    st.page_link("pages/9_📷_Image_Editor.py", label="📷 Редактор фото")
-    st.page_link("pages/10_📝_Article_Summarizer.py", label="📝 Суммаризатор")
-    st.page_link("pages/11_🗞_News_Reader.py", label="🗞 Новости")
+    st.page_link("pages/1_📱_Аккаунты.py", label="📱 Аккаунты")
+    st.page_link("pages/1b_📅_Контент_план.py", label="📅 Контент-план")
+    st.page_link("pages/2_🖼_Удаление_фона.py", label="🖼 Удаление фона")
+    st.page_link("pages/3_🧾_QR_код.py", label="🧾 QR-код")
+    st.page_link("pages/4_💻_Тестовые_данные.py", label="💻 Тестовые данные")
+    st.page_link("pages/5_📥_Загрузка_медиа.py", label="📥 Загрузка медиа")
+    st.page_link("pages/6_📊_Мониторинг.py", label="📊 Мониторинг")
+    st.page_link("pages/7_🔍_Анализ_кода.py", label="🔍 Анализ кода")
+    st.page_link("pages/8_🔗_Проверка_ссылок.py", label="🔗 Проверка ссылок")
+    st.page_link("pages/9_📷_Редактор_фото.py", label="📷 Редактор фото")
+    st.page_link("pages/10_📝_Суммаризатор.py", label="📝 Суммаризатор")
+    st.page_link("pages/11_🗞_Новости.py", label="🗞 Новости")
 
 # ── Header ────────────────────────────────────────────────────────────────────
 st.title("🚀 AutoPilot — Панель управления")
@@ -98,7 +99,7 @@ with col_left:
         )
         st.plotly_chart(fig, use_container_width=True)
     else:
-        st.info("Нет данных. Добавьте аккаунты через раздел 📱 Аккаунты.")
+        st.info("Нет данных. Добавьте аккаунты в разделе «📱 Аккаунты».")
 
 with col_right:
     st.subheader("🖥 Ресурсы системы")
@@ -131,7 +132,7 @@ if accounts:
             continue
         rows.append({
             "Платформа": platform_icons.get(acc.get("platform",""), "📱") + " " + acc.get("platform","").capitalize(),
-            "Username": "@" + acc.get("username", ""),
+            "Имя": "@" + acc.get("username", ""),
             "Авторизация": auth_icons.get(acc.get("auth_type",""), "❓") + " " + acc.get("auth_type",""),
             "Статус": status_icons.get(acc.get("status",""), "❓") + " " + acc.get("status",""),
             "Сессия": "✔" if acc.get("has_session") else "✘",
@@ -139,25 +140,26 @@ if accounts:
         })
     st.dataframe(rows, use_container_width=True, hide_index=True)
 elif bot_status:
-    st.info("Аккаунты не добавлены. Используйте раздел 📱 Аккаунты или Telegram-бота.")
+    st.info("Аккаунты не добавлены. Используйте раздел «📱 Аккаунты» или Telegram-бота.")
 else:
-    st.warning("⚠️ Social Media Bot недоступен. Убедитесь, что он запущен.")
+    st.warning("⚠️ Бот недоступен. Убедитесь, что он запущен.")
 
 st.divider()
 
 # ── Tools grid ────────────────────────────────────────────────────────────────
 st.subheader("🛠 Инструменты AutoPilot")
 tools = [
-    ("🖼", "Background Remover", "Убирает фон с фото за секунду", "pages/2_🖼_Background_Remover.py"),
-    ("🧾", "QR Generator", "QR-коды для ссылок, текста, WiFi", "pages/3_🧾_QR_Generator.py"),
-    ("💻", "Fake Data", "Реалистичные тестовые данные", "pages/4_💻_Fake_Data.py"),
-    ("📥", "Media Downloader", "1000+ сайтов: YT, TikTok, Insta, SC…", "pages/5_📥_Media_Downloader.py"),
-    ("📊", "Resource Monitor", "Мониторинг CPU, RAM, диска", "pages/6_📊_Resource_Monitor.py"),
-    ("🔍", "Code Analyzer", "Анализ кода через Pylint/Pyflakes", "pages/7_🔍_Code_Analyzer.py"),
-    ("🔗", "Link Checker", "Проверка живых ссылок", "pages/8_🔗_Link_Checker.py"),
-    ("📷", "Image Editor", "Кроп, blur, resize, эффекты", "pages/9_📷_Image_Editor.py"),
-    ("📝", "Summarizer", "Краткое изложение статей", "pages/10_📝_Article_Summarizer.py"),
-    ("🗞", "News Reader", "Актуальные новости из RSS", "pages/11_🗞_News_Reader.py"),
+    ("📅", "Контент-план", "Планировщик публикаций для всех аккаунтов", "pages/1b_📅_Контент_план.py"),
+    ("🖼", "Удаление фона", "Убирает фон с фотографии за секунду", "pages/2_🖼_Удаление_фона.py"),
+    ("🧾", "QR-генератор", "QR-коды для ссылок, текста, Wi-Fi", "pages/3_🧾_QR_код.py"),
+    ("💻", "Тестовые данные", "Реалистичные данные для тестирования", "pages/4_💻_Тестовые_данные.py"),
+    ("📥", "Загрузка медиа", "1000+ сайтов: YT, TikTok, Instagram…", "pages/5_📥_Загрузка_медиа.py"),
+    ("📊", "Мониторинг", "Мониторинг CPU, ОЗУ и диска", "pages/6_📊_Мониторинг.py"),
+    ("🔍", "Анализ кода", "Анализ кода через Pylint и Pyflakes", "pages/7_🔍_Анализ_кода.py"),
+    ("🔗", "Проверка ссылок", "Проверка живых и битых ссылок", "pages/8_🔗_Проверка_ссылок.py"),
+    ("📷", "Редактор фото", "Обрезка, размытие, размер, эффекты", "pages/9_📷_Редактор_фото.py"),
+    ("📝", "Суммаризатор", "Краткое изложение статей и текстов", "pages/10_📝_Суммаризатор.py"),
+    ("🗞", "Новости", "Актуальные новости из RSS-каналов", "pages/11_🗞_Новости.py"),
 ]
 
 cols = st.columns(5)

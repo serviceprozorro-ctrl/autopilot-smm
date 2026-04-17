@@ -86,6 +86,23 @@ if not bot_online:
     st.warning("⚠️ Telegram Bot API недоступен. Проверьте, что сервис на порту 3000 запущен.")
     st.stop()
 
+with st.expander("ℹ️ Как настроить TikTok для реальной публикации"):
+    st.markdown("""
+**TikTok работает через реальный Playwright + Chromium.** Чтобы публикации действительно
+проходили, нужны cookies авторизованной сессии:
+
+1. В браузере зайдите в TikTok и войдите в свой аккаунт.
+2. Установите расширение **Cookie Editor** (Chrome / Firefox).
+3. Откройте расширение на странице TikTok → нажмите **«Export» → «Export as JSON»**.
+4. На странице **«📱 Аккаунты»** добавьте аккаунт TikTok с типом **🍪 Cookies**
+   и вставьте скопированный JSON.
+5. Готово — теперь любой запланированный пост автоматически опубликуется
+   через 30 секунд после наступления времени.
+
+**Instagram и YouTube** пока работают в режиме симуляции (статус «Опубликован»
+выставляется, но реальной публикации не происходит). Это следующий шаг разработки.
+""")
+
 # ── Load data ────────────────────────────────────────────────────────────────
 accounts_raw = get_accounts() or []
 accounts = [a for a in accounts_raw if isinstance(a, dict)]
@@ -328,14 +345,27 @@ with tab_list:
     st.markdown("##### Все запланированные публикации")
 
     f1, f2, f3 = st.columns([1.5, 1.5, 1])
-    status_filter = f1.selectbox("Статус", ["Все", "scheduled", "publishing", "published", "failed", "cancelled"])
-    plat_filter = f2.selectbox("Платформа", ["Все", "tiktok", "instagram", "youtube"])
+    status_options = {
+        "Все": None,
+        "⏳ Запланирован": "scheduled",
+        "📤 Публикуется": "publishing",
+        "✅ Опубликован": "published",
+        "❌ Ошибка": "failed",
+        "🚫 Отменён": "cancelled",
+    }
+    status_label = f1.selectbox("Статус", list(status_options.keys()))
+    status_filter = status_options[status_label]
+
+    plat_options = {"Все": None, "🎵 TikTok": "tiktok", "📸 Instagram": "instagram", "▶️ YouTube": "youtube"}
+    plat_label = f2.selectbox("Платформа", list(plat_options.keys()))
+    plat_filter = plat_options[plat_label]
+
     sort_order = f3.selectbox("Сортировка", ["По дате ↑", "По дате ↓"])
 
     filtered = posts[:]
-    if status_filter != "Все":
+    if status_filter:
         filtered = [p for p in filtered if p["status"] == status_filter]
-    if plat_filter != "Все":
+    if plat_filter:
         filtered = [p for p in filtered if p["platform"] == plat_filter]
     filtered.sort(key=lambda p: p["scheduled_at"], reverse=(sort_order == "По дате ↓"))
 
@@ -357,8 +387,9 @@ with tab_list:
                 if p.get("hashtags"):
                     c2.caption(p["hashtags"][:80])
 
+                kind_ru = {"video":"Видео","reels":"Reels","image":"Картинка","story":"Story"}.get(p["media_kind"], p["media_kind"])
                 kind_lbl = {"video":"🎬","reels":"🎞","image":"🖼","story":"📱"}.get(p["media_kind"], "📄")
-                c3.markdown(f"{kind_lbl} {p['media_kind']}")
+                c3.markdown(f"{kind_lbl} {kind_ru}")
                 if p.get("media_path"):
                     c3.caption(f"📎 {os.path.basename(p['media_path'])[:14]}…")
 
