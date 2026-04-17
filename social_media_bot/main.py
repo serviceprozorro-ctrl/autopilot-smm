@@ -98,12 +98,14 @@ def create_app() -> FastAPI:
     from api.routes.posts import router as posts_router
     from api.routes.portfolio import router as portfolio_router
     from api.routes.analytics import router as analytics_router
+    from api.routes.auth import router as auth_router
 
     app.include_router(accounts_router, prefix="/api")
     app.include_router(stats_router, prefix="/api")
     app.include_router(posts_router, prefix="/api")
     app.include_router(portfolio_router, prefix="/api")
     app.include_router(analytics_router, prefix="/api")
+    app.include_router(auth_router)
     app.include_router(settings_router)
 
     # Serve Mini Web App static assets

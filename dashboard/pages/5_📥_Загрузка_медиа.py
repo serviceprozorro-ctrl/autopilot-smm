@@ -1,3 +1,7 @@
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+from utils.auth import require_auth, render_user_menu
+require_auth()
 """Media Downloader — powered by yt-dlp (1000+ sites)."""
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -15,6 +19,7 @@ st.set_page_config(
     page_icon="📥",
     layout="wide",
 )
+render_user_menu()
 
 YT_DLP = sys.executable.replace("python3.11", "yt-dlp") if "python" in sys.executable else "yt-dlp"
 PYTHON = sys.executable

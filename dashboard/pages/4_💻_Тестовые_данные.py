@@ -1,4 +1,8 @@
 import sys, os
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+from utils.auth import require_auth, render_user_menu
+require_auth()
+import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import streamlit as st
@@ -8,6 +12,7 @@ import io
 from faker import Faker
 
 st.set_page_config(page_title="Генератор тестовых данных", page_icon="💻", layout="wide")
+render_user_menu()
 st.title("💻 Генератор тестовых данных")
 st.markdown("Генератор реалистичных тестовых данных")
 

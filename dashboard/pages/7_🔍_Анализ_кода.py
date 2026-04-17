@@ -1,4 +1,8 @@
 import sys, os
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+from utils.auth import require_auth, render_user_menu
+require_auth()
+import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import streamlit as st
@@ -6,6 +10,7 @@ import subprocess
 import tempfile
 
 st.set_page_config(page_title="Анализатор кода", page_icon="🔍", layout="wide")
+render_user_menu()
 st.title("🔍 Анализатор кода")
 st.markdown("Анализ Python-кода через **Pylint** и **Pyflakes**")
 

@@ -1,3 +1,7 @@
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+from utils.auth import require_auth, render_user_menu
+require_auth()
 """Аналитика по аккаунтам: подписчики, посты, охваты, рост."""
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -12,6 +16,7 @@ from utils.api_client import (
 )
 
 st.set_page_config(page_title="Аналитика", page_icon="📊", layout="wide")
+render_user_menu()
 st.title("📊 Аналитика аккаунтов")
 st.caption("Снимки статистики по подписчикам, постам и вовлечённости. "
            "Делай регулярные снимки — увидишь рост во времени.")

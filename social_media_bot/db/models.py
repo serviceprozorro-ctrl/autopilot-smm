@@ -123,3 +123,24 @@ class AccountStatsSnapshot(Base):
 
     def __repr__(self) -> str:
         return f"<Stats acc={self.account_id} followers={self.followers}>"
+
+
+class User(Base):
+    """Пользователь панели управления (email/пароль или Google OAuth)."""
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True, index=True)
+    name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    google_id: Mapped[str | None] = mapped_column(String(255), nullable=True, unique=True, index=True)
+    avatar_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    role: Mapped[str] = mapped_column(String(20), nullable=False, default="user")  # user|admin
+    is_active: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False,
+    )
+    last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    def __repr__(self) -> str:
+        return f"<User id={self.id} email={self.email}>"

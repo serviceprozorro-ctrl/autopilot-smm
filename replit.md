@@ -121,3 +121,10 @@ Command: `cd dashboard && python3.11 -m streamlit run app.py --server.port 5000`
 | `pages/11_🗞_News_Reader.py` | 🗞 Новости | RSS-ленты: RBC, Habr, BBC, HN, TechCrunch |
 
 See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.
+
+## Authentication (Stage 1 — done)
+- **DB**: `User` model in `social_media_bot/db/models.py` (email, password_hash bcrypt, google_id, avatar, role, is_active, last_login_at). First registered user → `admin`.
+- **API**: `social_media_bot/api/routes/auth.py` — `/api/auth/register`, `/api/auth/login`, `/api/auth/google`, `/api/auth/me`. JWT (HS256, TTL 30 days, secret = `SESSION_SECRET`). `/api/auth/google` protected by `X-Internal-Secret` header (shared with Streamlit).
+- **Dashboard**: `dashboard/utils/auth.py` exposes `require_auth()` (gate) and `render_user_menu()` (sidebar avatar + logout). Every page in `dashboard/pages/*.py` and `dashboard/app.py` imports & calls them at top.
+- **Google OAuth**: uses Streamlit native `st.login("google")` if `.streamlit/secrets.toml` has `[auth.google]` (client_id, client_secret, redirect_uri). Until then, only email/password works.
+- **Stages remaining**: 2) PWA (manifest + service worker for installable web app), 3) Native Android APK.

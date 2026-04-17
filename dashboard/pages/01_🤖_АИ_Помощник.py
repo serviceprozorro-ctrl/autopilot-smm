@@ -1,3 +1,7 @@
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+from utils.auth import require_auth, render_user_menu
+require_auth()
 """АИ-помощник — чат с tool calling, вложениями, кнопками-вариантами,
 правой панелью проектов и историей (как ChatGPT)."""
 import sys, os
@@ -13,6 +17,7 @@ from utils.api_client import is_bot_online
 from utils import chat_store
 
 st.set_page_config(page_title="АИ-помощник", page_icon="🤖", layout="wide")
+render_user_menu()
 
 # ── CSS ─────────────────────────────────────────────────────────────────────
 st.markdown("""

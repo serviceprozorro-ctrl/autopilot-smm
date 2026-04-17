@@ -1,3 +1,7 @@
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+from utils.auth import require_auth, render_user_menu
+require_auth()
 """Страница управления аккаунтами — полная админ-панель."""
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -11,6 +15,7 @@ from utils.api_client import (
 )
 
 st.set_page_config(page_title="Аккаунты", page_icon="📱", layout="wide")
+render_user_menu()
 
 # ══════════════════════════════════════════════════════════════════════════════
 # CSS

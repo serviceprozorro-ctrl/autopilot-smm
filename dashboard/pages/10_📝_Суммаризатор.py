@@ -1,4 +1,8 @@
 import sys, os
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+from utils.auth import require_auth, render_user_menu
+require_auth()
+import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import streamlit as st
@@ -7,6 +11,7 @@ from collections import Counter
 import math
 
 st.set_page_config(page_title="Суммаризатор статей", page_icon="📝", layout="wide")
+render_user_menu()
 st.title("📝 Суммаризатор статей")
 st.markdown("Краткое изложение статей и текстов. Работает без AI — полностью локально.")
 

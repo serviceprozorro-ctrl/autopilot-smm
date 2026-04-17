@@ -1,4 +1,8 @@
 import sys, os
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+from utils.auth import require_auth, render_user_menu
+require_auth()
+import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import streamlit as st
@@ -6,6 +10,7 @@ from PIL import Image, ImageFilter
 import io
 
 st.set_page_config(page_title="Удаление фона", page_icon="🖼", layout="wide")
+render_user_menu()
 st.title("🖼 Удаление фона")
 st.markdown("Удалите фон с изображения. Поддерживается PNG, JPG, WEBP.")
 

@@ -1,3 +1,7 @@
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+from utils.auth import require_auth, render_user_menu
+require_auth()
 """Settings page — configure Telegram Bot token."""
 import sys
 import os
@@ -12,6 +16,7 @@ st.set_page_config(
     page_icon="⚙️",
     layout="centered",
 )
+render_user_menu()
 
 BOT_API = "http://localhost:3000"
 

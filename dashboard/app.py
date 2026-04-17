@@ -8,6 +8,9 @@ import psutil
 import platform
 from datetime import datetime
 from utils.api_client import get_stats, get_accounts, is_bot_online
+from utils.auth import require_auth, render_user_menu
+
+require_auth()
 
 st.set_page_config(
     page_title="AutoPilot — Панель управления",
@@ -15,6 +18,7 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+render_user_menu()
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
