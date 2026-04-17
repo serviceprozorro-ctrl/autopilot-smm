@@ -392,6 +392,67 @@ def render_login_page():
         st.caption("🔒 Данные защищены. Пароли хранятся в зашифрованном виде.")
 
 
+def inject_pwa():
+    """PWA: manifest, theme-color, service worker, install prompt."""
+    if st.session_state.get("_pwa_injected"):
+        return
+    st.session_state._pwa_injected = True
+    st.markdown("""
+    <link rel="manifest" href="/app/static/manifest.json">
+    <meta name="theme-color" content="#7C3AED">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AutoPilot">
+    <link rel="apple-touch-icon" href="/app/static/icon-192.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/app/static/icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/app/static/icon-512.png">
+    <script>
+    (function() {
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/app/static/sw.js', {scope: '/'})
+            .then(r => console.log('[PWA] SW registered:', r.scope))
+            .catch(e => console.warn('[PWA] SW failed:', e));
+        });
+      }
+      // Install button
+      let deferredPrompt = null;
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        const btn = document.getElementById('pwa-install-btn');
+        if (btn) btn.style.display = 'flex';
+      });
+      window.addEventListener('appinstalled', () => {
+        const btn = document.getElementById('pwa-install-btn');
+        if (btn) btn.style.display = 'none';
+        deferredPrompt = null;
+      });
+      // Inject install button once
+      function addBtn() {
+        if (document.getElementById('pwa-install-btn')) return;
+        const btn = document.createElement('button');
+        btn.id = 'pwa-install-btn';
+        btn.innerHTML = '⬇️ Установить приложение';
+        btn.style.cssText = 'display:none;position:fixed;bottom:20px;right:20px;z-index:9999;background:linear-gradient(135deg,#7C3AED,#EC4899);color:#fff;border:none;padding:12px 20px;border-radius:30px;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 8px 24px rgba(124,58,237,.5);align-items:center;gap:8px;';
+        btn.onmouseover = () => btn.style.transform = 'translateY(-2px)';
+        btn.onmouseout = () => btn.style.transform = 'translateY(0)';
+        btn.onclick = async () => {
+          if (!deferredPrompt) return;
+          deferredPrompt.prompt();
+          await deferredPrompt.userChoice;
+          deferredPrompt = null;
+          btn.style.display = 'none';
+        };
+        document.body.appendChild(btn);
+      }
+      if (document.body) addBtn();
+      else document.addEventListener('DOMContentLoaded', addBtn);
+    })();
+    </script>
+    """, unsafe_allow_html=True)
+
+
 def require_auth():
     """Главный гейт. Поставить в начале каждой страницы."""
     # Сначала пробуем Google OIDC если уже залогинен через st.login
@@ -401,8 +462,10 @@ def require_auth():
         st.set_page_config(page_title="AutoPilot — Вход", page_icon="🔐",
                            layout="centered",
                            initial_sidebar_state="collapsed")
+        inject_pwa()
         render_login_page()
         st.stop()
+    inject_pwa()
 
 
 def render_user_menu():

@@ -1,0 +1,43 @@
+{
+  "name": "AutoPilot — Платформа SMM",
+  "short_name": "AutoPilot",
+  "description": "AI-автоматизация TikTok, Instagram, YouTube. Многоаккаунтное управление, аналитика, AI-помощник.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0F0F1A",
+  "theme_color": "#7C3AED",
+  "lang": "ru",
+  "dir": "ltr",
+  "categories": ["productivity", "business", "social"],
+  "icons": [
+    {
+      "src": "/app/static/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/app/static/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "AI Помощник",
+      "short_name": "AI",
+      "description": "Открыть чат с AI-агентом",
+      "url": "/АИ_Помощник",
+      "icons": [{"src": "/app/static/icon-192.png", "sizes": "192x192"}]
+    },
+    {
+      "name": "Аккаунты",
+      "short_name": "Аккаунты",
+      "url": "/Аккаунты",
+      "icons": [{"src": "/app/static/icon-192.png", "sizes": "192x192"}]
+    }
+  ]
+}
