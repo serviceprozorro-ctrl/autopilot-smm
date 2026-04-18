@@ -1,4 +1,4 @@
-"""Root entry — loads the AutoPilot dashboard with full error capture for Streamlit Cloud."""
+"""Root entry for Streamlit Cloud — loads the dashboard with full error capture."""
 import sys
 import os
 import traceback
