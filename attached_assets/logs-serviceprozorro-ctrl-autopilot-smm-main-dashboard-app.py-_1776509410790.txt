@@ -1,0 +1,398 @@
+
+[     UTC     ] Logs for au2mni8ku4avmsz39qkgpe.streamlit.app/
+────────────────────────────────────────────────────────────────────────────────────────
+[10:41:59] 🚀 Starting up repository: 'autopilot-smm', branch: 'main', main module: 'dashboard/app.py'
+[10:41:59] 🐙 Cloning repository...
+[10:42:00] 🐙 Cloning into '/mount/src/autopilot-smm'...
+
+[10:42:00] 🐙 Cloned repository!
+[10:42:00] 🐙 Pulling code changes from Github...
+[10:42:01] 📦 Processing dependencies...
+
+──────────────────────────────────────── uv ───────────────────────────────────────────
+
+Using uv pip install.
+Using Python 3.14.4 environment at /home/adminuser/venv
+Resolved 89 packages in 1.75s
+Prepared 89 packages in 4.05s
+Installed 89 packages in 714ms
+ + altair==6.0.0
+ + annotated-types==0.7.0
+ +[2026-04-18 10:42:08.389863]  anthropic==0.96.0
+ + anyio==4.13.0
+ + astroid[2026-04-18 10:42:08.390114] ==4.0.4
+ + attrs==26.1.0
+ [2026-04-18 10:42:08.390340] + bcrypt==5.0.0
+ + blinker==1.9.0
+ + cachetools==7.0.5
+ +[2026-04-18 10:42:08.390542]  certifi==2026.2.25
+ + cffi==2.0.0
+ + charset-normalizer==3.4.7
+ +[2026-04-18 10:42:08.390760]  click==8.1.8
+ + cryptography==[2026-04-18 10:42:08.390974] 46.0.7
+ + dill==0.4.1
+ + distro==1.9.0
+ + docstring-parser==0.18.0
+ + faker==[2026-04-18 10:42:08.391206] 40.15.0
+ + feedparser==6.0.12
+ + gitdb==4.0.12
+ + gitpython==3.1.46
+ + gtts[2026-04-18 10:42:08.391397] ==2.5.4
+ + h11==0.16.0
+ + httpcore==1.0.9
+ + httpx==0.28.1
+ + idna==3.11[2026-04-18 10:42:08.391602] 
+ + imageio==2.37.3
+ + isort==8.0.1
+ + jinja2==3.1.6
+ + jiter==0.14.0
+ + [2026-04-18 10:42:08.391741] joblib==1.5.3
+ + jsonschema==4.26.0
+ + jsonschema-specifications==2025.9.1
+ + lazy-loader==0.5
+ [2026-04-18 10:42:08.391867] + llvmlite==0.47.0
+ + markupsafe==3.0.3
+ + mccabe==0.7.0
+ + narwhals==2.19.0[2026-04-18 10:42:08.391989] 
+ + networkx==3.6.1
+ + nltk==3.9.4
+ + numba==0.65.0
+ + numpy==[2026-04-18 10:42:08.392210] 2.4.4
+ + openai==2.32.0
+ + packaging==26.1
+ + pandas==3.0.2
+ + [2026-04-18 10:42:08.392434] pdfminer-six==20251230
+ + pdfplumber==0.11.9
+ + pillow==12.2.0
+ + platformdirs==4.9.6
+ + plotly==6.7.0
+ + pooch==1.9.0
+ + protobuf==7.34.1
+ + psutil==7.2.2[2026-04-18 10:42:08.392719] 
+ + pyarrow==23.0.1
+ + pycparser==3.0
+ + pydantic==2.13.2
+ + [2026-04-18 10:42:08.392915] pydantic-core==2.46.2
+ + pydeck==0.9.2
+ + pyflakes==3.4.0
+ + pyjwt==2.12.1
+ +[2026-04-18 10:42:08.393085]  pylint==4.0.5
+ + pymatting==1.1.15
+ + pypdfium2==5.7.0
+ + python-dateutil==2.9.0.post0
+ + [2026-04-18 10:42:08.393224] qrcode==8.2
+ + referencing==0.37.0
+ + regex==2026.4.4
+ + rembg[2026-04-18 10:42:08.393374] ==2.0.75
+ + requests==2.33.1
+ + rpds-py==0.30.0
+ + scikit-image==0.26.0[2026-04-18 10:42:08.393538] 
+ + scipy==1.17.1
+ + sgmllib3k==1.0.0
+ + six==1.17.0
+ + smmap[2026-04-18 10:42:08.393697] ==5.0.3
+ + sniffio==1.3.1
+ + streamlit==1.56.0
+ + tenacity==9.1.4
+ + tifffile[2026-04-18 10:42:08.393815] ==2026.4.11
+ + toml==0.10.2
+ + tomlkit==0.14.0
+ + tornado==[2026-04-18 10:42:08.393935] 6.5.5
+ + tqdm==4.67.3
+ + typing-extensions==4.15.0[2026-04-18 10:42:08.394072] 
+ + typing-inspection==0.4.2
+ + urllib3==2.6.3
+ +[2026-04-18 10:42:08.394213]  validators==0.35.0
+ + watchdog==6.0.0
+ + yt-dlp==[2026-04-18 10:42:08.394353] 2026.3.17
+Checking if Streamlit is installed
+Found Streamlit version 1.56.0 in the environment
+Installing rich for an improved exception logging
+Using uv pip install.
+Using Python 3.14.4 environment at /home/adminuser/venv
+Resolved 4 packages in 123ms
+Prepared 4 packages in 98ms
+Installed 4 packages in 10ms
+ + markdown-it-py[2026-04-18 10:42:10.465804] ==4.0.0
+ + mdurl==0.1.2
+ + pygments==2.20.0
+ + rich==15.0.0
+
+────────────────────────────────────────────────────────────────────────────────────────
+
+[10:42:10] 🐍 Python dependencies were installed from /mount/src/autopilot-smm/dashboard/requirements.txt using uv.
+[10:42:10] 📦 WARN: More than one requirements file detected in the repository. Available options: uv /mount/src/autopilot-smm/dashboard/requirements.txt, poetry /mount/src/autopilot-smm/pyproject.toml. Used: uv with /mount/src/autopilot-smm/dashboard/requirements.txt
+Check if streamlit is installed
+Streamlit is already installed
+[10:42:12] 📦 Processed dependencies!
+
+
+
+[10:42:14] ❗️ The service has encountered an error while checking the health of the Streamlit app: Get "http://localhost:8501/healthz": dial tcp 127.0.0.1:8501: connect: connection refused
+[10:44:50] 🐙 Pulling code changes from Github...
+[10:44:51] 📦 Processing dependencies...
+[10:44:51] 📦 Processed dependencies!
+[10:44:52] 🔄 Updated app!
+[10:48:42] 🖥 Provisioning machine...
+[10:48:47] 🎛 Preparing system...
+[10:48:52] ⛓ Spinning up manager process...
+[10:48:59] 🎈 Inflating balloons...
+[10:48:43] 🚀 Starting up repository: 'autopilot-smm', branch: 'main', main module: 'dashboard/app.py'
+[10:48:43] 🐙 Cloning repository...
+[10:48:45] 🐙 Cloning into '/mount/src/autopilot-smm'...
+
+[10:48:45] 🐙 Cloned repository!
+[10:48:45] 🐙 Pulling code changes from Github...
+[10:48:45] 📦 Processing dependencies...
+
+──────────────────────────────────────── uv ───────────────────────────────────────────
+
+Using uv pip install.
+Using Python 3.11.15 environment at /home/adminuser/venv
+Resolved 89 packages in 2.15s
+Prepared 89 packages in 5.38s
+Installed 89 packages in 543ms
+ + altair==6.0.0
+ + annotated-types==0.7.0
+ + anthropic==0.96.0
+ + anyio==4.13.0
+ + astroid==4.0.4
+ + attrs==26.1.0
+ +[2026-04-18 10:48:54.320084]  bcrypt==5.0.0
+ + blinker==1.9.0
+ + cachetools==7.0.5
+ + certifi==2026.2.25
+ + [2026-04-18 10:48:54.320211] cffi==2.0.0
+ + charset-normalizer==3.4.7
+ + click==8.1.8
+ + [2026-04-18 10:48:54.320331] cryptography==46.0.7
+ + dill==0.4.1
+ + distro==1.9.0[2026-04-18 10:48:54.320506] 
+ + docstring-parser==0.18.0
+ + faker==40.15.0
+ + [2026-04-18 10:48:54.320629] feedparser==6.0.12
+ + gitdb==4.0.12
+ + gitpython==[2026-04-18 10:48:54.320815] 3.1.46
+ + gtts==2.5.4
+ + h11[2026-04-18 10:48:54.320987] ==0.16.0
+ + httpcore==1.0.9
+ + httpx[2026-04-18 10:48:54.321176] ==0.28.1
+ + idna==3.11
+ + imageio[2026-04-18 10:48:54.321366] ==2.37.3
+ + isort==8.0.1
+ + jinja2[2026-04-18 10:48:54.321552] ==3.1.6
+ + jiter==0.14.0
+ + joblib==1.5.3
+ [2026-04-18 10:48:54.321692] + jsonschema==4.26.0
+ + jsonschema-specifications==2025.9.1
+ + [2026-04-18 10:48:54.321819] lazy-loader==0.5
+ + llvmlite==0.47.0
+ + markupsafe[2026-04-18 10:48:54.321910] ==3.0.3
+ + mccabe==0.7.0
+ + narwhals==2.19.0
+ + networkx[2026-04-18 10:48:54.322029] ==3.6.1
+ + nltk==3.9.4
+ + numba==0.65.0
+ + numpy==[2026-04-18 10:48:54.322135] 2.4.4
+ + openai==2.32.0
+ + packaging==26.1[2026-04-18 10:48:54.322255] 
+ + pandas==3.0.2
+ + pdfminer-six==20251230
+ + pdfplumber==[2026-04-18 10:48:54.322494] 0.11.9
+ + pillow==12.2.0
+ + platformdirs==4.9.6
+ + plotly[2026-04-18 10:48:54.322632] ==6.7.0
+ + pooch==1.9.0
+ + protobuf==7.34.1[2026-04-18 10:48:54.322727] 
+ + psutil==7.2.2
+ + pyarrow==23.0.1
+ + pycparser[2026-04-18 10:48:54.322833] ==3.0
+ + pydantic==2.13.2
+ + pydantic-core==2.46.2
+ + [2026-04-18 10:48:54.322934] pydeck==0.9.2
+ + pyflakes==3.4.0
+ + pyjwt==2.12.1
+ + pylint==4.0.5[2026-04-18 10:48:54.323021] 
+ + pymatting==1.1.15
+ + pypdfium2==5.7.0
+ + python-dateutil==2.9.0.post0
+ + qrcode==8.2
+ + referencing==0.37.0
+ + regex==2026.4.4
+ + rembg==2.0.75
+ + requests==2.33.1
+ +[2026-04-18 10:48:54.323242]  rpds-py==0.30.0
+ + scikit-image==0.26.0
+ + scipy==1.17.1
+ + sgmllib3k[2026-04-18 10:48:54.323322] ==1.0.0
+ + six==1.17.0
+ + smmap[2026-04-18 10:48:54.323397] ==5.0.3
+ + sniffio==1.3.1
+ + streamlit==[2026-04-18 10:48:54.323553] 1.56.0
+ + tenacity==9.1.4
+ + tifffile==2026.3.3
+ + toml==0.10.2[2026-04-18 10:48:54.323639] 
+ + tomlkit==0.14.0
+ + tornado==6.5.5
+ + tqdm==4.67.3
+ [2026-04-18 10:48:54.323740] + typing-extensions==4.15.0
+ + typing-inspection==0.4.2
+ + urllib3==[2026-04-18 10:48:54.323838] 2.6.3
+ + validators==0.35.0
+ + watchdog==6.0.0
+ + yt-dlp==2026.3.17[2026-04-18 10:48:54.323922] 
+Checking if Streamlit is installed
+Found Streamlit version 1.56.0 in the environment
+Installing rich for an improved exception logging
+Using uv pip install.
+Using Python 3.11.15 environment at /home/adminuser/venv
+Resolved 4 packages in 123ms
+Prepared 4 packages in 152ms
+Installed 4 packages in 16ms
+ + markdown-it-py[2026-04-18 10:48:56.568856] ==4.0.0
+ + mdurl==0.1.2
+ + pygments==2.20.0
+ + rich==15.0.0
+
+────────────────────────────────────────────────────────────────────────────────────────
+
+[10:48:56] 🐍 Python dependencies were installed from /mount/src/autopilot-smm/dashboard/requirements.txt using uv.
+[10:48:56] 📦 WARN: More than one requirements file detected in the repository. Available options: uv /mount/src/autopilot-smm/dashboard/requirements.txt, poetry /mount/src/autopilot-smm/pyproject.toml. Used: uv with /mount/src/autopilot-smm/dashboard/requirements.txt
+Check if streamlit is installed
+Streamlit is already installed
+[10:48:57] 📦 Processed dependencies!
+
+
+
+[10:49:00] ❗️ The service has encountered an error while checking the health of the Streamlit app: Get "http://localhost:8501/healthz": dial tcp 127.0.0.1:8501: connect: connection refused
+[10:49:08] 🖥 Provisioning machine...
+[10:49:10] 🚀 Starting up repository: 'autopilot-smm', branch: 'main', main module: 'dashboard/app.py'
+[10:49:10] 🐙 Cloning repository...
+[10:49:11] 🐙 Cloning into '/mount/src/autopilot-smm'...
+
+[10:49:11] 🐙 Cloned repository!
+[10:49:11] 🐙 Pulling code changes from Github...
+[10:49:11] 📦 Processing dependencies...
+
+──────────────────────────────────────── uv ───────────────────────────────────────────
+
+Using uv pip install.
+Using Python 3.11.15 environment at /home/adminuser/venv
+[10:49:13] 🎛 Preparing system...
+[10:49:13] ⛓ Spinning up manager process...
+Resolved 89 packages in 1.51s
+Prepared 89 packages in 4.81s
+Installed 89 packages in 195ms
+ + altair==6.0.0
+ + annotated-types==0.7.0
+ + anthropic==0.96.0
+ + anyio==4.13.0
+ + astroid==4.0.4
+ + attrs==[2026-04-18 10:49:18.480681] 26.1.0
+ + bcrypt==5.0.0
+ + blinker==1.9.0
+ + cachetools==7.0.5
+ + certifi==2026.2.25
+ + cffi==2.0.0[2026-04-18 10:49:18.480978] 
+ + charset-normalizer==3.4.7
+ + click==8.1.8
+ + cryptography==46.0.7
+ + dill==0.4.1[2026-04-18 10:49:18.481197] 
+ + distro==1.9.0
+ + docstring-parser==0.18.0
+ + faker==40.15.0
+ + [2026-04-18 10:49:18.481362] feedparser==6.0.12
+ + gitdb==4.0.12
+ + gitpython==3.1.46
+ + gtts==2.5.4
+ + h11==0.16.0
+ + httpcore==1.0.9
+ + httpx==0.28.1
+ + idna==3.11[2026-04-18 10:49:18.481803] 
+ + imageio==2.37.3
+ + isort==8.0.1
+ + jinja2==[2026-04-18 10:49:18.482003] 3.1.6
+ + jiter==0.14.0
+ +[2026-04-18 10:49:18.482208]  joblib==1.5.3
+ + jsonschema==4.26.0[2026-04-18 10:49:18.482446] 
+ + jsonschema-specifications==2025.9.1
+ + lazy-loader==0.5
+ + llvmlite==0.47.0[2026-04-18 10:49:18.482672] 
+ + markupsafe==3.0.3
+ + mccabe==0.7.0[2026-04-18 10:49:18.482907] 
+ + narwhals==2.19.0
+ + networkx==3.6.1
+ + nltk==3.9.4
+ [2026-04-18 10:49:18.483069] + numba==0.65.0
+ + numpy==2.4.4
+ + openai[2026-04-18 10:49:18.483231] ==2.32.0
+ + packaging==26.1
+ + pandas==3.0.2
+ + pdfminer-six==[2026-04-18 10:49:18.483349] 20251230
+ + pdfplumber==0.11.9
+ + pillow==12.2.0
+ +[2026-04-18 10:49:18.483463]  platformdirs==4.9.6
+ + plotly==6.7.0
+ + pooch==1.9.0
+ + [2026-04-18 10:49:18.483578] protobuf==7.34.1
+ + psutil==7.2.2
+ + pyarrow==23.0.1
+ + pycparser==3.0
+ + pydantic==[2026-04-18 10:49:18.483692] 2.13.2
+ + pydantic-core==2.46.2
+ + pydeck==0.9.2
+ + pyflakes==3.4.0
+ + pyjwt==[2026-04-18 10:49:18.483837] 2.12.1
+ + pylint==4.0.5
+ + pymatting==1.1.15
+ + pypdfium2==5.7.0
+ + python-dateutil==2.9.0.post0
+ + qrcode==8.2
+ + referencing[2026-04-18 10:49:18.484075] ==0.37.0
+ + regex==2026.4.4
+ + rembg==2.0.75
+ + requests==[2026-04-18 10:49:18.484184] 2.33.1
+ + rpds-py==0.30.0
+ + scikit-image==0.26.0
+ + scipy==1.17.1[2026-04-18 10:49:18.484308] 
+ + sgmllib3k==1.0.0
+ + six==1.17.0
+ + smmap==5.0.3
+ +[2026-04-18 10:49:18.484416]  sniffio==1.3.1
+ + streamlit==1.56.0
+ + [2026-04-18 10:49:18.484522] tenacity==9.1.4
+ + tifffile==2026.3.3
+ + toml==0.10.2
+ + tomlkit[2026-04-18 10:49:18.484630] ==0.14.0
+ + tornado==6.5.5
+ + tqdm==4.67.3
+ + [2026-04-18 10:49:18.484758] typing-extensions==4.15.0
+ + typing-inspection==0.4.2
+ + urllib3==2.6.3
+ + validators==0.35.0
+ + watchdog[2026-04-18 10:49:18.484877] ==6.0.0
+ + yt-dlp==2026.3.17
+Checking if Streamlit is installed
+Found Streamlit version 1.56.0 in the environment
+Installing rich for an improved exception logging
+Using uv pip install.
+Using Python 3.11.15 environment at /home/adminuser/venv
+Resolved 4 packages in 120ms
+Prepared 4 packages in 128ms
+Installed 4 packages in 12ms
+ + markdown-it-py[2026-04-18 10:49:20.277170] ==4.0.0
+ + mdurl==0.1.2
+ + pygments==2.20.0
+ + rich==15.0.0
+
+────────────────────────────────────────────────────────────────────────────────────────
+
+[10:49:20] 🐍 Python dependencies were installed from /mount/src/autopilot-smm/dashboard/requirements.txt using uv.
+[10:49:20] 📦 WARN: More than one requirements file detected in the repository. Available options: uv /mount/src/autopilot-smm/dashboard/requirements.txt, poetry /mount/src/autopilot-smm/pyproject.toml. Used: uv with /mount/src/autopilot-smm/dashboard/requirements.txt
+Check if streamlit is installed
+Streamlit is already installed
+[10:49:22] 📦 Processed dependencies!
+
+
+
+[10:49:24] ❗️ The service has encountered an error while checking the health of the Streamlit app: Get "http://localhost:8501/healthz": dial tcp 127.0.0.1:8501: connect: connection refused
