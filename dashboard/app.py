@@ -1,24 +1,38 @@
 import sys
 import os
+import traceback
 sys.path.insert(0, os.path.dirname(__file__))
 
 import streamlit as st
-import plotly.graph_objects as go
-import psutil
-import platform
-from datetime import datetime
-from utils.api_client import get_stats, get_accounts, is_bot_online
-from utils.auth import require_auth, render_user_menu
 
-require_auth()
+try:
+    import plotly.graph_objects as go
+    import psutil
+    import platform
+    from datetime import datetime
+    from utils.api_client import get_stats, get_accounts, is_bot_online
+    from utils.auth import require_auth, render_user_menu
 
-st.set_page_config(
-    page_title="AutoPilot — Панель управления",
-    page_icon="🚀",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
-render_user_menu()
+    require_auth()
+
+    st.set_page_config(
+        page_title="AutoPilot — Панель управления",
+        page_icon="🚀",
+        layout="wide",
+        initial_sidebar_state="expanded",
+    )
+    render_user_menu()
+except SystemExit:
+    raise
+except Exception:
+    try:
+        st.set_page_config(page_title="AutoPilot — Ошибка", page_icon="⚠️", layout="wide")
+    except Exception:
+        pass
+    st.error("⚠️ Ошибка при запуске приложения. Подробности ниже:")
+    st.code(traceback.format_exc(), language="python")
+    st.info("Сделайте скриншот этого сообщения и пришлите разработчику.")
+    st.stop()
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
